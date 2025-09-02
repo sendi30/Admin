@@ -68,6 +68,9 @@
     const auth = firebase.auth();
     const db = firebase.database();
 
+    // UID admin resmi
+    const ADMIN_UID = "MtTAFgAjMqVRDlEFdfsxT56m29i1";
+
     // Helpers
     function showToast(msg, type="success") {
       const toast = document.getElementById("toast");
@@ -80,13 +83,15 @@
     }
     function fmtDate(ts){ return ts ? new Date(ts).toLocaleString("id-ID") : "-"; }
 
-    // State check
+    // State check (pakai UID check)
     auth.onAuthStateChanged(user => {
       document.getElementById("loading").classList.add("hidden");
-      if (user && user.email === "adminnusatask@gmail.com") {
+
+      if (user && user.uid === ADMIN_UID) {
         document.getElementById("loginSection").classList.add("hidden");
         document.getElementById("adminSection").classList.remove("hidden");
       } else {
+        if (user) auth.signOut(); // auto logout jika bukan admin
         document.getElementById("loginSection").classList.remove("hidden");
         document.getElementById("adminSection").classList.add("hidden");
       }
@@ -125,14 +130,9 @@
 
         let html = `
           <h2 class="text-xl mb-3">Daftar Withdraw</h2>
-          <div class="flex gap-2 mb-3">
-            <input type="date" id="fromDate" class="bg-gray-700 p-2 rounded">
-            <input type="date" id="toDate" class="bg-gray-700 p-2 rounded">
-            <button onclick="filterWithdraws()" class="bg-blue-600 px-4 rounded">Filter</button>
-          </div>
           <table class="w-full text-left">
             <thead><tr><th>Email</th><th>Nominal</th><th>Metode</th><th>Status</th><th>Aksi</th></tr></thead>
-            <tbody id="wdTable">`;
+            <tbody>`;
         snap.forEach(child=>{
           const wd = child.val();
           html += `<tr class="border-b border-gray-700">
@@ -200,15 +200,6 @@
     function unbanUser(uid){
       db.ref("banned/"+uid).remove();
       showToast("User di-Unban ✅");
-    }
-
-    // Filter Withdraw by Date
-    function filterWithdraws(){
-      const from = document.getElementById("fromDate").value;
-      const to = document.getElementById("toDate").value;
-      if(!from && !to){ showToast("Isi tanggal filter!","error"); return; }
-      const container = document.getElementById("content");
-      renderWithdrawals(container); // reload, lalu filter bisa ditambahin kalau mau advance
     }
   </script>
 </body>
