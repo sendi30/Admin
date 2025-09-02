@@ -2,44 +2,49 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <title>Admin Panel - NusaTask</title>
-  <script type="module" src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js"></script>
-  <script type="module" src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js"></script>
-  <script type="module" src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <title>WD - NusaTask</title>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    body { background-color: #0f172a; color: white; }
+    .card { background-color: #1e293b; border-radius: 1rem; padding: 1.5rem; box-shadow: 0 4px 15px rgba(0,0,0,0.4); }
+    .notif { position: fixed; top: 20px; right: 20px; padding: 10px 20px; border-radius: 8px; display: none; }
+    .notif.green { background: #22c55e; }
+    .notif.red { background: #ef4444; }
+    .notif.blue { background: #3b82f6; }
+  </style>
 </head>
-<body class="bg-gray-100 font-sans">
-  <div class="max-w-6xl mx-auto mt-10 space-y-10">
-    <h1 class="text-3xl font-bold text-center text-blue-700 mb-6">📊 Admin Panel - NusaTask</h1>
+<body class="flex items-center justify-center min-h-screen">
+  <div class="card w-full max-w-md">
+    <h1 class="text-2xl font-bold text-center mb-4">💰 Withdraw</h1>
 
-    <!-- Withdrawals -->
-    <section class="bg-white p-6 rounded-2xl shadow-lg">
-      <h2 class="text-xl font-semibold mb-4">💸 Daftar Withdrawals</h2>
-      <div id="withdrawals"></div>
-    </section>
+    <p id="saldo" class="text-center text-xl mb-4">Saldo: Rp0</p>
 
-    <!-- Users -->
-    <section class="bg-white p-6 rounded-2xl shadow-lg">
-      <div class="flex items-center justify-between mb-4">
-        <h2 class="text-xl font-semibold">👤 Manajemen User</h2>
-        <!-- Search box -->
-        <input 
-          type="text" 
-          id="searchUser" 
-          placeholder="Cari UID..." 
-          class="px-3 py-2 border rounded-lg w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-      </div>
-      <div id="users"></div>
-    </section>
+    <form id="wdForm" class="space-y-3">
+      <input type="number" id="amount" placeholder="Nominal WD" class="w-full p-2 rounded text-black">
+      
+      <select id="method" class="w-full p-2 rounded text-black">
+        <option value="Dana">Dana</option>
+        <option value="OVO">OVO</option>
+        <option value="Gopay">Gopay</option>
+        <option value="ShopeePay">ShopeePay</option>
+      </select>
+
+      <input type="text" id="wallet" placeholder="Nomor E-Wallet" class="w-full p-2 rounded text-black">
+
+      <button type="submit" class="w-full py-2 rounded bg-green-500 hover:bg-green-600 transition">Ajukan WD</button>
+    </form>
+
+    <h2 class="text-xl font-semibold mt-6 mb-2">📜 Riwayat WD</h2>
+    <ul id="history" class="space-y-2 text-sm"></ul>
   </div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
-    import { getDatabase, ref, onValue, update, remove } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+  <div id="notif" class="notif"></div>
 
-    // 🔹 Config Firebase kamu
+  <script>
+    // Firebase Config
     const firebaseConfig = {
       apiKey: "AIzaSyCrFmaHbmL299cum51EtJIjt5NpukpTmho",
       authDomain: "penyimpanansaldo-280df.firebaseapp.com",
@@ -50,150 +55,116 @@
       appId: "1:659609775130:web:bdd088ca5a877498c5b5a3",
       measurementId: "G-L4TW7E23H2"
     };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.database();
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getDatabase(app);
+    let userId = null;
 
-    let allUsers = {}; // simpan semua user global
+    // Telegram Bot
+    const BOT_TOKEN = "8236562243:AAFIyLCk2fu9-4GxxYSuIoSKw9DEiv1DVko";
+    const CHAT_ID   = "8322802091";
 
-    // =========================
-    // Render Withdrawals
-    // =========================
-    function renderWithdrawals(data) {
-      let html = `
-        <table class="w-full border-collapse">
-          <thead>
-            <tr class="bg-blue-600 text-white">
-              <th class="p-3 text-left">User</th>
-              <th class="p-3 text-left">Jumlah</th>
-              <th class="p-3 text-left">Metode</th>
-              <th class="p-3 text-left">Status</th>
-              <th class="p-3 text-left">Aksi</th>
-            </tr>
-          </thead>
-          <tbody>
-      `;
-
-      for (const id in data) {
-        const wd = data[id];
-        const statusBadge = wd.status === "success"
-          ? `<span class="px-3 py-1 text-xs font-semibold bg-green-100 text-green-700 rounded-full">Sukses</span>`
-          : wd.status === "pending"
-          ? `<span class="px-3 py-1 text-xs font-semibold bg-yellow-100 text-yellow-700 rounded-full">Pending</span>`
-          : `<span class="px-3 py-1 text-xs font-semibold bg-red-100 text-red-700 rounded-full">Ditolak</span>`;
-
-        html += `
-          <tr class="border-b hover:bg-gray-50 transition">
-            <td class="p-3">${wd.uid}</td>
-            <td class="p-3">Rp ${wd.amount.toLocaleString()}</td>
-            <td class="p-3">${wd.method || "-"}</td>
-            <td class="p-3">${statusBadge}</td>
-            <td class="p-3 space-x-2">
-              <button onclick="updateStatus('${id}','success')" class="px-3 py-1 bg-green-500 text-white rounded-lg shadow hover:bg-green-600 transition">✔️ Approve</button>
-              <button onclick="updateStatus('${id}','rejected')" class="px-3 py-1 bg-red-500 text-white rounded-lg shadow hover:bg-red-600 transition">❌ Reject</button>
-              <button onclick="deleteWD('${id}')" class="px-3 py-1 bg-gray-500 text-white rounded-lg shadow hover:bg-gray-600 transition">🗑️ Hapus</button>
-            </td>
-          </tr>
-        `;
-      }
-
-      html += "</tbody></table>";
-      document.getElementById("withdrawals").innerHTML = html;
+    function sendNotif(text, type="blue"){
+      const n = document.getElementById("notif");
+      n.innerText = text;
+      n.className = "notif " + type;
+      n.style.display = "block";
+      setTimeout(()=>n.style.display="none", 4000);
     }
 
-    // =========================
-    // Render Users + Search
-    // =========================
-    function renderUsers(data, filter = "") {
-      let html = `
-        <table class="w-full border-collapse">
-          <thead>
-            <tr class="bg-purple-600 text-white">
-              <th class="p-3 text-left">UID</th>
-              <th class="p-3 text-left">Saldo</th>
-              <th class="p-3 text-left">Status</th>
-              <th class="p-3 text-left">Aksi</th>
-            </tr>
-          </thead>
-          <tbody>
-      `;
-
-      for (const uid in data) {
-        if (filter && !uid.toLowerCase().includes(filter.toLowerCase())) continue;
-
-        const user = data[uid];
-        const statusBadge = user.status === "banned"
-          ? `<span class="px-3 py-1 text-xs font-semibold bg-red-100 text-red-700 rounded-full">Banned</span>`
-          : `<span class="px-3 py-1 text-xs font-semibold bg-green-100 text-green-700 rounded-full">Active</span>`;
-
-        const actionBtn = user.status === "banned"
-          ? `<button onclick="unbanUser('${uid}')" class="px-3 py-1 bg-green-500 text-white rounded-lg shadow hover:bg-green-600 transition">🔓 Unban</button>`
-          : `<button onclick="banUser('${uid}')" class="px-3 py-1 bg-red-500 text-white rounded-lg shadow hover:bg-red-600 transition">🚫 Ban</button>`;
-
-        html += `
-          <tr class="border-b hover:bg-gray-50 transition">
-            <td class="p-3">${uid}</td>
-            <td class="p-3">Rp ${(user.saldo || 0).toLocaleString()}</td>
-            <td class="p-3">${statusBadge}</td>
-            <td class="p-3">${actionBtn}</td>
-          </tr>
-        `;
-      }
-
-      html += "</tbody></table>";
-      document.getElementById("users").innerHTML = html;
+    function sendTelegram(msg){
+      fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ chat_id: CHAT_ID, text: msg, parse_mode: "HTML" })
+      });
     }
 
-    // =========================
-    // Firebase Actions
-    // =========================
-    window.updateStatus = (id, status) => {
-      update(ref(db, "withdrawals/" + id), { status });
-    };
-
-    window.deleteWD = (id) => {
-      remove(ref(db, "withdrawals/" + id));
-    };
-
-    window.banUser = (uid) => {
-      update(ref(db, "users/" + uid), { status: "banned" });
-    };
-
-    window.unbanUser = (uid) => {
-      update(ref(db, "users/" + uid), { status: "active" });
-    };
-
-    // =========================
-    // Auth Check & Load Data
-    // =========================
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        onValue(ref(db, "withdrawals"), (snapshot) => {
-          document.getElementById("withdrawals").innerHTML = snapshot.exists()
-            ? renderWithdrawals(snapshot.val())
-            : "<p class='text-gray-500 text-center'>Belum ada data WD.</p>";
-        });
-
-        onValue(ref(db, "users"), (snapshot) => {
-          if (snapshot.exists()) {
-            allUsers = snapshot.val();
-            renderUsers(allUsers);
-          } else {
-            document.getElementById("users").innerHTML = "<p class='text-gray-500 text-center'>Belum ada user terdaftar.</p>";
-          }
-        });
+    // Auto login (pakai session)
+    auth.onAuthStateChanged(user=>{
+      if(user){
+        userId = user.uid;
+        loadSaldo();
+        loadHistory();
       } else {
-        window.location.href = "/index.html";
+        // Auto login dengan akun sudah terdaftar
+        auth.signInWithEmailAndPassword("adminuser@gmail.com","sendi1922")
+        .catch(e=>sendNotif("Login gagal: "+e.message,"red"));
       }
     });
 
-    // =========================
-    // Search Input Listener
-    // =========================
-    document.getElementById("searchUser").addEventListener("input", (e) => {
-      const filter = e.target.value.trim();
-      renderUsers(allUsers, filter);
+    // Load Saldo
+    function loadSaldo(){
+      db.ref("users/"+userId+"/saldo").on("value",snap=>{
+        const saldo = snap.val()||0;
+        document.getElementById("saldo").innerText = "Saldo: Rp"+saldo.toLocaleString("id-ID");
+      });
+    }
+
+    // Submit WD
+    document.getElementById("wdForm").addEventListener("submit",e=>{
+      e.preventDefault();
+      const amount = parseInt(document.getElementById("amount").value);
+      const method = document.getElementById("method").value;
+      const wallet = document.getElementById("wallet").value;
+
+      if(amount < 30000) return sendNotif("Minimal WD Rp30.000","red");
+
+      db.ref("users/"+userId+"/saldo").once("value").then(snap=>{
+        const saldo = snap.val()||0;
+        if(amount > saldo) return sendNotif("Saldo tidak cukup","red");
+
+        const wdId = db.ref("withdrawals").push().key;
+        const data = {
+          userId, amount, method, wallet,
+          createdAt: Date.now(),
+          status: "pending"
+        };
+        db.ref("withdrawals/"+wdId).set(data);
+        db.ref("users/"+userId+"/saldo").set(saldo-amount);
+
+        sendNotif("WD diajukan!","green");
+
+        const msg = `
+📢 <b>WD Baru</b>
+💰 Jumlah: Rp${amount.toLocaleString("id-ID")}
+🏦 Metode: ${method}
+📱 Nomor: ${wallet}
+👤 UID: ${userId}
+⏳ Status: pending
+        `;
+        sendTelegram(msg);
+      });
+    });
+
+    // Load Riwayat WD
+    function loadHistory(){
+      db.ref("withdrawals").orderByChild("userId").equalTo(userId).on("value",snap=>{
+        const list = document.getElementById("history");
+        list.innerHTML="";
+        snap.forEach(item=>{
+          const wd = item.val();
+          const li = document.createElement("li");
+          li.className="p-2 rounded bg-gray-700";
+          li.innerText=`Rp${wd.amount.toLocaleString("id-ID")} - ${wd.method} - ${wd.wallet} [${wd.status}]`;
+          list.appendChild(li);
+        });
+      });
+    }
+
+    // Listener status update → kirim Telegram
+    db.ref("withdrawals").on("child_changed",snap=>{
+      const wd = snap.val();
+      const msg = `
+🔔 <b>Status WD Update</b>
+💰 Jumlah: Rp${wd.amount.toLocaleString("id-ID")}
+🏦 Metode: ${wd.method}
+📱 Nomor: ${wd.wallet}
+👤 UID: ${wd.userId}
+✅ Status: ${wd.status}
+      `;
+      sendTelegram(msg);
     });
   </script>
 </body>
