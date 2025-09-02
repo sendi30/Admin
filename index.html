@@ -1,136 +1,58 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>NusaTask • Admin Panel</title>
-<meta name="theme-color" content="#0b0f17">
-<style>
-  :root{color-scheme:dark}
-  *{box-sizing:border-box}
-  body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:#0b0f17;color:#e8ecf1}
-  .wrap{max-width:1100px;margin:28px auto;padding:16px}
-  .brand{display:flex;align-items:center;gap:12px;margin-bottom:16px}
-  .logo{width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#0ea5e9,#22d3ee)}
-  h1{margin:0;font-size:22px;font-weight:900}
-  .muted{color:#94a3b8;font-size:13px}
-
-  .card{background:#0f172a;border:1px solid #1f2937;border-radius:18px;padding:18px;box-shadow:0 10px 30px rgba(0,0,0,.25);transition:transform .25s,box-shadow .25s}
-  .card:hover{transform:translateY(-2px);box-shadow:0 14px 40px rgba(0,0,0,.35)}
-  .grid{display:grid;gap:16px}
-  @media(min-width:960px){.grid{grid-template-columns:1fr 1fr}}
-  .panel{display:none}
-  .title{font-size:18px;font-weight:800;margin:0 0 6px}
-  .subtitle{font-size:13px;color:#9ca3af;margin-bottom:12px}
-  .line{height:1px;background:linear-gradient(90deg,transparent,#1f2937,transparent);margin:12px 0}
-  input,select{width:100%;padding:12px 14px;border-radius:12px;border:1px solid #334155;background:#0b1220;color:#e5e7eb;outline:none}
-  input:focus,select:focus{border-color:#60a5fa;box-shadow:0 0 0 4px rgba(96,165,250,.15)}
-  label{font-size:13px;color:#9ca3af;margin-bottom:6px;display:block}
-  .btn{padding:10px 14px;border-radius:12px;border:1px solid #2b3444;background:#162033;color:#e5e7eb;cursor:pointer;font-weight:600;transition:transform .05s,filter .2s}
-  .btn:hover{filter:brightness(1.08)}
-  .btn:active{transform:translateY(1px)}
-  .btn-primary{background:#2563eb;border-color:#1d4ed8}
-  .btn-green{background:#166534;border-color:#14532d}
-  .btn-red{background:#7f1d1d;border-color:#6b1616}
-  .btn-amber{background:#92400e;border-color:#78350f}
-  .btn-ghost{background:#0b1220;border-color:#1f2937}
-  .btn:disabled{opacity:.6;cursor:not-allowed}
-  .toolbar{display:flex;gap:8px;flex-wrap:wrap}
-  .topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
-  .tabs{display:flex;gap:8px;flex-wrap:wrap}
-  .stat{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
-  .pill{font-size:12px;padding:4px 8px;border-radius:999px;background:#0b1220;border:1px solid #1f2937;color:#9ca3af}
-  .list{display:grid;gap:10px}
-  .item{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;background:#0b1220;border:1px solid #1f2937;padding:12px;border-radius:12px}
-  .status{font-size:12px;padding:4px 8px;border-radius:999px;border:1px solid}
-  .status-pending{border-color:#92400e;color:#fbbf24;background:rgba(146,64,14,.15)}
-  .status-approved{border-color:#14532d;color:#86efac;background:rgba(20,83,45,.15)}
-  .status-rejected{border-color:#7f1d1d;color:#fca5a5;background:rgba(127,29,29,.15)}
-  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:12px;color:#9ca3af}
-  .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:22px;background:#0f172a;border:1px solid #334155;padding:12px 14px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.35);opacity:0;pointer-events:none;transition:.25s;z-index:60}
-  .toast.show{opacity:1;pointer-events:auto}
-  .loader{position:fixed;inset:0;background:rgba(3,6,12,.65);display:none;align-items:center;justify-content:center;backdrop-filter:saturate(120%) blur(4px);z-index:50}
-  .spinner{width:48px;height:48px;border-radius:999px;border:4px solid #334155;border-top-color:#60a5fa;animation:spin 1s linear infinite}
-  @keyframes spin{to{transform:rotate(360deg)}}
-  .fade-in{animation:fade .35s ease both}@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel - NusaTask</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 </head>
-<body>
-  <div class="wrap">
-    <div class="brand">
-      <div class="logo"></div>
-      <div>
-        <h1>NusaTask • Admin Panel</h1>
-        <div class="muted">Kelola Withdraw, User, & Banned • Dark Elegant</div>
-      </div>
-    </div>
+<body class="bg-gray-900 text-white">
 
-    <!-- AUTH -->
-    <div id="auth" class="card fade-in" style="max-width:460px;margin:10vh auto">
-      <div class="title">Login Admin</div>
-      <div class="subtitle">Gunakan akun admin resmi. Hanya UID yang terdaftar sebagai admin yang bisa masuk.</div>
-      <div class="line"></div>
-      <div style="display:grid;gap:10px">
-        <div><label>Email</label><input id="email" type="email" placeholder="AdminNusaTask@gmail.com"></div>
-        <div><label>Password</label><input id="password" type="password" placeholder="••••••••"></div>
-        <button id="btnLogin" class="btn btn-primary">Masuk</button>
-      </div>
-      <div class="line"></div>
-      <div class="muted">Auto login aktif setelah berhasil masuk. Logout untuk menonaktifkan.</div>
-    </div>
+  <!-- Loading -->
+  <div id="loading" class="fixed inset-0 flex items-center justify-center bg-gray-900 z-50">
+    <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div>
+  </div>
 
-    <!-- PANEL -->
-    <div id="panel" class="panel fade-in">
-      <div class="topbar">
-        <div class="tabs">
-          <button id="tabWD" class="btn btn-amber">💰 Withdraw</button>
-          <button id="tabUsers" class="btn btn-ghost">👥 Users</button>
-          <button id="tabBanned" class="btn btn-red">⛔ Banned</button>
-        </div>
-        <div class="toolbar">
-          <input id="search" placeholder="Cari (email/uid/nomor)..." style="min-width:260px">
-          <button id="btnRefresh" class="btn">↻ Refresh</button>
-          <button id="btnLogout" class="btn">Logout</button>
-        </div>
-      </div>
-
-      <div class="grid">
-        <div class="card">
-          <div class="title">Ringkasan</div>
-          <div class="subtitle">Realtime statistik sistem</div>
-          <div class="line"></div>
-          <div class="stat">
-            <div class="card"><div class="muted">Pending WD</div><div id="statPending" style="font-weight:900;font-size:24px">0</div></div>
-            <div class="card"><div class="muted">Approved</div><div id="statApproved" style="font-weight:900;font-size:24px">0</div></div>
-            <div class="card"><div class="muted">Total Users</div><div id="statUsers" style="font-weight:900;font-size:24px">0</div></div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="title">Info Admin</div>
-          <div class="subtitle">Kredensial & validasi</div>
-          <div class="line"></div>
-          <div id="adminInfo" class="mono">-</div>
-        </div>
-      </div>
-
-      <div class="card" style="margin-top:16px">
-        <div class="title" id="sectionTitle">Withdraw</div>
-        <div class="line"></div>
-        <div id="list" class="list"></div>
-      </div>
+  <!-- Login Section -->
+  <div id="loginSection" class="hidden min-h-screen flex items-center justify-center">
+    <div class="bg-gray-800 p-6 rounded-xl shadow-lg w-96 text-center">
+      <h1 class="text-2xl font-bold mb-4">Admin Login</h1>
+      <input id="email" type="email" placeholder="Email"
+        class="w-full mb-3 p-2 rounded bg-gray-700 text-white focus:outline-none">
+      <input id="password" type="password" placeholder="Password"
+        class="w-full mb-3 p-2 rounded bg-gray-700 text-white focus:outline-none">
+      <button onclick="login()" class="w-full bg-blue-600 hover:bg-blue-700 py-2 rounded">Login</button>
+      <p id="loginError" class="text-red-400 text-sm mt-3 hidden"></p>
     </div>
   </div>
 
-  <div id="loader" class="loader"><div class="spinner"></div></div>
-  <div id="toast" class="toast">Info</div>
+  <!-- Admin Section -->
+  <div id="adminSection" class="hidden p-6">
+    <h1 class="text-3xl font-bold mb-6">📊 Admin Panel NusaTask</h1>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
-    import { getDatabase, ref, onValue, get, child, update, query, orderByChild, equalTo, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-database.js";
+    <!-- Menu -->
+    <div class="grid grid-cols-3 gap-4 mb-6">
+      <button onclick="showPage('withdraw')" class="bg-yellow-500 p-4 rounded-lg shadow">💰 Withdraw</button>
+      <button onclick="showPage('users')" class="bg-blue-500 p-4 rounded-lg shadow">👥 Users</button>
+      <button onclick="showPage('banned')" class="bg-red-500 p-4 rounded-lg shadow">⛔ Banned</button>
+    </div>
 
-    // ==== Firebase Config (punyamu) ====
+    <!-- Content -->
+    <div id="content" class="bg-gray-800 p-4 rounded-xl shadow min-h-[400px]">
+      <p class="text-gray-400">Pilih menu untuk melihat data.</p>
+    </div>
+
+    <button onclick="logout()" class="mt-6 bg-gray-600 hover:bg-gray-700 py-2 px-6 rounded">Logout</button>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed bottom-5 right-5 hidden bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg"></div>
+
+  <script>
+    // Firebase Config
     const firebaseConfig = {
       apiKey: "AIzaSyCrFmaHbmL299cum51EtJIjt5NpukpTmho",
       authDomain: "penyimpanansaldo-280df.firebaseapp.com",
@@ -141,313 +63,152 @@
       appId: "1:659609775130:web:bdd088ca5a877498c5b5a3",
       measurementId: "G-L4TW7E23H2"
     };
+    firebase.initializeApp(firebaseConfig);
 
-    // ==== Admin guard ====
-    const ADMIN_UID = "MtTAFgAjMqVRDlEFdfsxT56m29i1"; // UID admin utama (bisa tambah daftar di /admins)
+    const auth = firebase.auth();
+    const db = firebase.database();
 
-    // ==== Init ====
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getDatabase(app);
+    // Helpers
+    function showToast(msg, type="success") {
+      const toast = document.getElementById("toast");
+      toast.innerText = msg;
+      toast.className = `fixed bottom-5 right-5 px-4 py-2 rounded-lg shadow-lg ${
+        type==="error" ? "bg-red-600" : "bg-green-600"
+      }`;
+      toast.style.display = "block";
+      setTimeout(()=> toast.style.display="none", 3000);
+    }
+    function fmtDate(ts){ return ts ? new Date(ts).toLocaleString("id-ID") : "-"; }
 
-    // ==== UI helpers ====
-    const $ = s=>document.querySelector(s);
-    const authCard = $("#auth");
-    const panel = $("#panel");
-    const list = $("#list");
-    const loader = $("#loader");
-    const toast = $("#toast");
-    const search = $("#search");
-    const sectionTitle = $("#sectionTitle");
-    const statPending = $("#statPending");
-    const statApproved = $("#statApproved");
-    const statUsers = $("#statUsers");
-    const adminInfo = $("#adminInfo");
-
-    const btnLogin = $("#btnLogin");
-    const btnLogout = $("#btnLogout");
-    const btnRefresh = $("#btnRefresh");
-    const tabWD = $("#tabWD");
-    const tabUsers = $("#tabUsers");
-    const tabBanned = $("#tabBanned");
-
-    let currentTab = "wd"; // wd | users | banned
-    let cacheWithdrawals = [];
-    let cacheUsers = [];
-    let cacheBanned = [];
-
-    function setLoading(v){ loader.style.display = v ? "flex":"none"; }
-    function toastMsg(t){ toast.textContent=t; toast.classList.add("show"); setTimeout(()=>toast.classList.remove("show"),2200); }
-    function rp(n){ return "Rp"+Number(n||0).toLocaleString("id-ID"); }
-
-    // ==== Auth ====
-    btnLogin?.addEventListener("click", async ()=>{
-      const email = ($("#email").value||"").trim();
-      const pass  = ($("#password").value||"").trim();
-      if(!email || !pass) return toastMsg("Isi email & password.");
-      try{
-        setLoading(true);
-        const cred = await signInWithEmailAndPassword(auth,email,pass);
-        toastMsg("Login sukses.");
-      }catch(e){ toastMsg("Login gagal: "+(e?.message||e)); }
-      finally{ setLoading(false); }
-    });
-
-    btnLogout?.addEventListener("click", ()=>signOut(auth));
-
-    onAuthStateChanged(auth, async (u)=>{
-      if(!u){ panel.style.display="none"; authCard.style.display="block"; return; }
-      // guard: hanya admin
-      const isAdminUID = u.uid === ADMIN_UID;
-      let listedAdmin = false;
-      try{
-        const snap = await get(ref(db,"admins/"+u.uid));
-        listedAdmin = snap.exists();
-      }catch(_){}
-
-      if(!isAdminUID && !listedAdmin){
-        toastMsg("Akses ditolak (bukan admin).");
-        await signOut(auth);
-        return;
+    // State check
+    auth.onAuthStateChanged(user => {
+      document.getElementById("loading").classList.add("hidden");
+      if (user && user.email === "AdminNusaTask@gmail.com") {
+        document.getElementById("loginSection").classList.add("hidden");
+        document.getElementById("adminSection").classList.remove("hidden");
+      } else {
+        document.getElementById("loginSection").classList.remove("hidden");
+        document.getElementById("adminSection").classList.add("hidden");
       }
-
-      authCard.style.display="none";
-      panel.style.display="block";
-      adminInfo.textContent = `Logged in as: ${u.email||"(tanpa email)"} • UID: ${u.uid} • AdminListed: ${listedAdmin}`;
-
-      bindStats();
-      loadCurrentTab();
     });
 
-    // ==== Tabs & Refresh ====
-    tabWD.addEventListener("click", ()=>{ currentTab="wd"; loadCurrentTab(); });
-    tabUsers.addEventListener("click", ()=>{ currentTab="users"; loadCurrentTab(); });
-    tabBanned.addEventListener("click", ()=>{ currentTab="banned"; loadCurrentTab(); });
-    btnRefresh.addEventListener("click", loadCurrentTab);
-    search.addEventListener("input", ()=>renderList());
+    // Login
+    function login() {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      auth.signInWithEmailAndPassword(email, password)
+        .catch(err => {
+          document.getElementById("loginError").innerText = err.message;
+          document.getElementById("loginError").classList.remove("hidden");
+        });
+    }
+    function logout(){ auth.signOut(); }
 
-    function loadCurrentTab(){
-      if(currentTab==="wd"){ sectionTitle.textContent="Withdraw"; loadWithdraws(); }
-      else if(currentTab==="users"){ sectionTitle.textContent="Users"; loadUsers(); }
-      else { sectionTitle.textContent="Banned"; loadBanned(); }
+    // Page Switcher
+    function showPage(page){
+      const content = document.getElementById("content");
+      content.innerHTML = `<p class="text-gray-400 animate-pulse">Loading ${page}...</p>`;
+
+      if(page==="withdraw"){
+        renderWithdrawals(content);
+      } else if(page==="users"){
+        renderUsers(content);
+      } else if(page==="banned"){
+        renderBanned(content);
+      }
     }
 
-    // ==== Stats ====
-    function bindStats(){
-      onValue(ref(db,"withdrawals"), (snap)=>{
-        let pending=0, approved=0;
-        snap.forEach(ch=>{
-          const s = (ch.val()?.status||"pending").toLowerCase();
-          if(s==="pending") pending++;
-          else if(s==="approved") approved++;
+    // Render Withdrawals
+    function renderWithdrawals(container){
+      db.ref("withdrawals").once("value", snap=>{
+        if(!snap.exists()){ container.innerHTML="<p class='text-gray-400'>Tidak ada WD</p>"; return; }
+
+        let html = `
+          <h2 class="text-xl mb-3">Daftar Withdraw</h2>
+          <div class="flex gap-2 mb-3">
+            <input type="date" id="fromDate" class="bg-gray-700 p-2 rounded">
+            <input type="date" id="toDate" class="bg-gray-700 p-2 rounded">
+            <button onclick="filterWithdraws()" class="bg-blue-600 px-4 rounded">Filter</button>
+          </div>
+          <table class="w-full text-left">
+            <thead><tr><th>Email</th><th>Nominal</th><th>Metode</th><th>Status</th><th>Aksi</th></tr></thead>
+            <tbody id="wdTable">`;
+        snap.forEach(child=>{
+          const wd = child.val();
+          html += `<tr class="border-b border-gray-700">
+            <td>${wd.email||"-"}</td>
+            <td>Rp${wd.amount||0}</td>
+            <td>${wd.method||"-"}</td>
+            <td>${wd.status||"pending"}</td>
+            <td>
+              ${wd.status==="pending" ? `
+              <button onclick="approveWd('${child.key}','${wd.uid}',${wd.amount})" class="bg-green-600 px-2 py-1 rounded">Approve</button>
+              <button onclick="rejectWd('${child.key}')" class="bg-red-600 px-2 py-1 rounded">Reject</button>` : "-"}
+            </td>
+          </tr>`;
         });
-        statPending.textContent = pending;
-        statApproved.textContent = approved;
-      });
-      onValue(ref(db,"users"), (snap)=>{
-        let c=0; snap.forEach(()=>c++);
-        statUsers.textContent=c;
+        html+="</tbody></table>";
+        container.innerHTML = html;
       });
     }
 
-    // ==== Withdrawals ====
-    function loadWithdraws(){
-      setLoading(true);
-      onValue(ref(db,"withdrawals"), (snap)=>{
-        setLoading(false);
-        cacheWithdrawals = [];
-        snap.forEach(ch=>{
-          const v = ch.val()||{};
-          cacheWithdrawals.push({id:ch.key,...v});
-        });
-        cacheWithdrawals.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
-        renderList();
-      }, { onlyOnce:false });
+    // Approve / Reject Withdraw
+    function approveWd(id, uid, amount){
+      db.ref("withdrawals/"+id).update({status:"approved"});
+      db.ref("users/"+uid+"/saldo").transaction(saldo=>(saldo||0)-amount);
+      showToast("Withdraw Approved ✅");
+    }
+    function rejectWd(id){
+      db.ref("withdrawals/"+id).update({status:"rejected"});
+      showToast("Withdraw Rejected ❌","error");
     }
 
-    // approve/reject handlers
-    async function approveWD(id){
-      try{
-        setLoading(true);
-        await update(ref(db,"withdrawals/"+id),{status:"approved"});
-        toastMsg("WD approved.");
-      }catch(e){ toastMsg("Gagal approve."); }
-      finally{ setLoading(false); }
+    // Render Users
+    function renderUsers(container){
+      db.ref("users").once("value", snap=>{
+        if(!snap.exists()){ container.innerHTML="<p class='text-gray-400'>Tidak ada User</p>"; return; }
+        let html = "<h2 class='text-xl mb-3'>Daftar User</h2><ul>";
+        snap.forEach(child=>{
+          let u=child.val();
+          html+=`<li class="mb-2 bg-gray-700 p-2 rounded">${u.email||"-"} - Saldo: Rp${u.saldo||0}
+            <button onclick="banUser('${child.key}')" class="bg-red-600 px-2 py-1 rounded ml-2">Ban</button>
+          </li>`;
+        });
+        html+="</ul>";
+        container.innerHTML=html;
+      });
+    }
+    function banUser(uid){
+      db.ref("banned/"+uid).set(true);
+      showToast("User dibanned ⛔","error");
     }
 
-    async function rejectWD(id, uid, nominal){
-      try{
-        setLoading(true);
-        // refund saldo via transaction untuk aman
-        await runTransaction(ref(db,"users/"+uid+"/saldo"), (curr)=> (Number(curr||0)+Number(nominal||0)));
-        await update(ref(db,"withdrawals/"+id),{status:"rejected"});
-        toastMsg("WD ditolak & saldo direfund.");
-      }catch(e){ toastMsg("Gagal reject/refund."); }
-      finally{ setLoading(false); }
+    // Render Banned
+    function renderBanned(container){
+      db.ref("banned").once("value", snap=>{
+        if(!snap.exists()){ container.innerHTML="<p class='text-gray-400'>Tidak ada user banned</p>"; return; }
+        let html="<h2 class='text-xl mb-3'>Daftar Banned</h2><ul>";
+        snap.forEach(c=>{
+          html+=`<li class="mb-2 bg-red-700 p-2 rounded">${c.key}
+            <button onclick="unbanUser('${c.key}')" class="bg-green-600 px-2 py-1 rounded ml-2">Unban</button>
+          </li>`;
+        });
+        html+="</ul>";
+        container.innerHTML=html;
+      });
+    }
+    function unbanUser(uid){
+      db.ref("banned/"+uid).remove();
+      showToast("User di-Unban ✅");
     }
 
-    // ==== Users ====
-    function loadUsers(){
-      setLoading(true);
-      onValue(ref(db,"users"), (snap)=>{
-        setLoading(false);
-        cacheUsers = [];
-        snap.forEach(ch=>{
-          const v = ch.val()||{};
-          cacheUsers.push({uid:ch.key,...v});
-        });
-        cacheUsers.sort((a,b)=> (b.saldo||0)-(a.saldo||0));
-        renderList();
-      }, { onlyOnce:false });
-    }
-
-    async function banUser(uid){
-      try{
-        setLoading(true);
-        await update(ref(db,"users/"+uid),{status:"banned"});
-        await update(ref(db,"banned/"+uid),{at:Date.now()});
-        toastMsg("User dibanned.");
-      }catch(e){ toastMsg("Gagal ban."); }
-      finally{ setLoading(false); }
-    }
-
-    async function unbanUser(uid){
-      try{
-        setLoading(true);
-        await update(ref(db,"users/"+uid),{status:"active"});
-        await update(ref(db,"banned/"+uid),null);
-        toastMsg("User di-unban.");
-      }catch(e){ toastMsg("Gagal unban."); }
-      finally{ setLoading(false); }
-    }
-
-    // ==== Banned ====
-    function loadBanned(){
-      setLoading(true);
-      onValue(ref(db,"users"), (snap)=>{
-        setLoading(false);
-        cacheBanned = [];
-        snap.forEach(ch=>{
-          const v = ch.val()||{};
-          if((v.status||"active")==="banned"){
-            cacheBanned.push({uid:ch.key,...v});
-          }
-        });
-        renderList();
-      }, { onlyOnce:false });
-    }
-
-    // ==== Render ====
-    function renderList(){
-      const q = (search.value||"").toLowerCase();
-      list.innerHTML = "";
-      if(currentTab==="wd"){
-        let arr = cacheWithdrawals;
-        if(q){
-          arr = arr.filter(x=>{
-            return (x.number||"").toLowerCase().includes(q)
-                || (x.method||"").toLowerCase().includes(q)
-                || (x.uid||"").toLowerCase().includes(q)
-                || String(x.nominal||"").includes(q);
-          });
-        }
-        if(arr.length===0){ list.innerHTML = `<div class="muted">Tidak ada data.</div>`; return; }
-        arr.forEach(it=>{
-          const st = (it.status||"pending").toLowerCase();
-          const cls = st==="approved"?"status status-approved": st==="rejected"?"status status-rejected":"status status-pending";
-          const div = document.createElement("div");
-          div.className="item";
-          div.innerHTML = `
-            <div>
-              <div><strong>${it.method||"-"}</strong> • ${it.number||"-"}</div>
-              <div class="muted">UID: <span class="mono">${it.uid||"-"}</span></div>
-              <div class="muted">${new Date(it.createdAt||Date.now()).toLocaleString("id-ID")}</div>
-            </div>
-            <div style="text-align:right">
-              <div style="font-weight:800">${rp(it.nominal||0)}</div>
-              <div class="${cls}" style="margin-top:6px;text-transform:capitalize">${st}</div>
-              <div style="display:flex;gap:6px;margin-top:8px">
-                <button class="btn btn-green" data-approve="${it.id}" ${st!=="pending"?"disabled":""}>Approve</button>
-                <button class="btn btn-red" data-reject="${it.id}" ${st!=="pending"?"disabled":""}>Reject</button>
-              </div>
-            </div>
-          `;
-          list.appendChild(div);
-        });
-        list.querySelectorAll("[data-approve]").forEach(b=>{
-          b.onclick = ()=>{
-            const id = b.getAttribute("data-approve");
-            approveWD(id);
-          }
-        });
-        list.querySelectorAll("[data-reject]").forEach(b=>{
-          b.onclick = ()=>{
-            const id = b.getAttribute("data-reject");
-            const it = cacheWithdrawals.find(x=>x.id===id);
-            if(!it) return;
-            rejectWD(id, it.uid, it.nominal);
-          }
-        });
-      }
-      else if(currentTab==="users"){
-        let arr = cacheUsers;
-        if(q){
-          arr = arr.filter(x=>{
-            return (x.email||"").toLowerCase().includes(q)
-                || (x.uid||"").toLowerCase().includes(q)
-                || (x.ip||"").toLowerCase().includes(q)
-                || (x.deviceId||"").toLowerCase().includes(q);
-          });
-        }
-        if(arr.length===0){ list.innerHTML = `<div class="muted">Tidak ada user.</div>`; return; }
-        arr.forEach(u=>{
-          const div = document.createElement("div");
-          div.className="item";
-          div.innerHTML = `
-            <div>
-              <div><strong>${u.email||"(tanpa email)"}</strong></div>
-              <div class="muted">UID: <span class="mono">${u.uid}</span></div>
-              <div class="muted">IP: ${u.ip||"-"} • Device: ${u.deviceId||"-"}</div>
-            </div>
-            <div style="text-align:right">
-              <div style="font-weight:800">${rp(u.saldo||0)}</div>
-              <div class="pill" style="margin-top:6px;text-transform:capitalize">${u.status||"active"}</div>
-              <div style="display:flex;gap:6px;margin-top:8px">
-                <button class="btn btn-red" data-ban="${u.uid}" ${(u.status==="banned")?"disabled":""}>Ban</button>
-                <button class="btn btn-green" data-unban="${u.uid}" ${(u.status==="banned")?"":"disabled"}>Unban</button>
-              </div>
-            </div>
-          `;
-          list.appendChild(div);
-        });
-        list.querySelectorAll("[data-ban]").forEach(b=>b.onclick=()=>banUser(b.dataset.ban));
-        list.querySelectorAll("[data-unban]").forEach(b=>b.onclick=()=>unbanUser(b.dataset.unban));
-      }
-      else{ // banned
-        let arr = cacheBanned;
-        if(q){
-          arr = arr.filter(x=>{
-            return (x.email||"").toLowerCase().includes(q)
-                || (x.uid||"").toLowerCase().includes(q);
-          });
-        }
-        if(arr.length===0){ list.innerHTML = `<div class="muted">Tidak ada user banned.</div>`; return; }
-        arr.forEach(u=>{
-          const div = document.createElement("div");
-          div.className="item";
-          div.innerHTML = `
-            <div>
-              <div><strong>${u.email||"(tanpa email)"}</strong> • <span class="mono">${u.uid}</span></div>
-              <div class="muted">IP: ${u.ip||"-"} • Device: ${u.deviceId||"-"}</div>
-            </div>
-            <div>
-              <button class="btn btn-green" data-unban="${u.uid}">Unban</button>
-            </div>
-          `;
-          list.appendChild(div);
-        });
-        list.querySelectorAll("[data-unban]").forEach(b=>b.onclick=()=>unbanUser(b.dataset.unban));
-      }
+    // Filter Withdraw by Date
+    function filterWithdraws(){
+      const from = document.getElementById("fromDate").value;
+      const to = document.getElementById("toDate").value;
+      if(!from && !to){ showToast("Isi tanggal filter!","error"); return; }
+      const container = document.getElementById("content");
+      renderWithdrawals(container); // reload, lalu filter bisa ditambahin kalau mau advance
     }
   </script>
 </body>
