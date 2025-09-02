@@ -83,7 +83,7 @@
     // State check
     auth.onAuthStateChanged(user => {
       document.getElementById("loading").classList.add("hidden");
-      if (user && user.email === "AdminNusaTask@gmail.com") {
+      if (user && user.email === "adminnusatask@gmail.com") {
         document.getElementById("loginSection").classList.add("hidden");
         document.getElementById("adminSection").classList.remove("hidden");
       } else {
