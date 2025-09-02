@@ -1,206 +1,232 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <title>Admin Panel - NusaTask</title>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-  <style>
-    body { background-color: #0f172a; color: white; font-family: 'Inter', sans-serif; }
-    .card { background-color: #1e293b; border-radius: 1rem; padding: 1.5rem; box-shadow: 0 4px 15px rgba(0,0,0,0.4); }
-    .notif { 
-      position: fixed; top: 20px; right: 20px; padding: 12px 20px; 
-      border-radius: 8px; display: none; font-weight: 600; 
-      animation: fadeIn 0.4s ease-in-out;
-    }
-    .notif.green { background: #22c55e; }
-    .notif.red { background: #ef4444; }
-    .notif.blue { background: #3b82f6; }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(-10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>NusaTask • Admin Panel</title>
+<style>
+  :root { color-scheme: dark; }
+  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Ubuntu,Arial,sans-serif;background:#0b0f17;color:#e8ecf1}
+  .wrap{max-width:980px;margin:26px auto;padding:16px}
+  .card{background:#111827;border:1px solid #1f2937;border-radius:16px;padding:18px}
+  .btn{padding:10px 14px;border-radius:12px;border:1px solid #334155;background:#0f172a;color:#e5e7eb;cursor:pointer}
+  .btn:hover{filter:brightness(1.05)}
+  .btn-green{background:#166534;border-color:#14532d}
+  .btn-red{background:#7f1d1d;border-color:#701a1a}
+  .btn-yellow{background:#92400e;border-color:#78350f}
+  input{width:100%;padding:12px;border-radius:12px;border:1px solid #334155;background:#0f172a;color:#e5e7eb}
+  .list{display:grid;gap:10px;margin-top:10px}
+  .item{display:flex;justify-content:space-between;gap:10px;align-items:center;background:#0f172a;border:1px solid #1f2937;padding:12px;border-radius:12px}
+  .muted{color:#9ca3af;font-size:13px}
+  .title{font-weight:800;font-size:22px;margin:0 0 6px}
+  .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:24px;background:#111827;border:1px solid #334155;padding:12px 14px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.35);opacity:0;pointer-events:none;transition:.25s}
+  .toast.show{opacity:1;pointer-events:auto}
+  .loader{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:50}
+  .spinner{width:44px;height:44px;border-radius:999px;border:4px solid #334155;border-top-color:#60a5fa;animation:spin 1s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
 </head>
-<body class="p-6">
-
-  <h1 class="text-3xl font-bold text-center mb-6">⚡ Admin Panel - NusaTask</h1>
-
-  <div class="grid md:grid-cols-2 gap-6">
-
-    <!-- Withdraw Section -->
-    <div class="card">
-      <h2 class="text-xl font-bold mb-3">💰 Daftar Withdraw</h2>
-      <div id="wdList" class="space-y-2 text-sm"></div>
+<body>
+  <div class="wrap">
+    <!-- Login Card -->
+    <div class="card" id="authCard">
+      <div class="title">Login Admin</div>
+      <p class="muted">Gunakan akun admin resmi</p>
+      <div style="display:grid;gap:8px;margin-top:8px">
+        <input id="email" type="email" placeholder="Email admin" value="AdminNusaTask@gmail.com"/>
+        <input id="password" type="password" placeholder="Password admin"/>
+        <button id="btnLogin" class="btn btn-green">Masuk</button>
+      </div>
     </div>
 
-    <!-- Banned Section -->
-    <div class="card">
-      <h2 class="text-xl font-bold mb-3">🚫 Daftar Banned</h2>
-      <div id="bannedList" class="space-y-2 text-sm"></div>
+    <!-- Panel -->
+    <div class="card" id="panel" style="display:none">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div>
+          <div class="title">Admin Panel</div>
+          <div class="muted">Kelola Withdraw, User, dan Banned</div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button id="navWD" class="btn btn-yellow">💰 Withdraw</button>
+          <button id="navUsers" class="btn">👥 Users</button>
+          <button id="navBanned" class="btn btn-red">⛔ Banned</button>
+          <button id="logout" class="btn">🚪 Logout</button>
+        </div>
+      </div>
+      <div id="content" class="list"></div>
     </div>
-
-    <!-- User Section -->
-    <div class="card md:col-span-2">
-      <h2 class="text-xl font-bold mb-3">👥 Daftar User</h2>
-      <div id="userList" class="space-y-2 text-sm"></div>
-    </div>
-
   </div>
 
-  <div id="notif" class="notif"></div>
+  <!-- Loader & Toast -->
+  <div id="loader" class="loader"><div class="spinner"></div></div>
+  <div id="toast" class="toast">Info</div>
 
-  <script>
-    // Firebase Config
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
+    import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-database.js";
+
+    // 🔑 Firebase Config
     const firebaseConfig = {
       apiKey: "AIzaSyCrFmaHbmL299cum51EtJIjt5NpukpTmho",
       authDomain: "penyimpanansaldo-280df.firebaseapp.com",
       databaseURL: "https://penyimpanansaldo-280df-default-rtdb.asia-southeast1.firebasedatabase.app",
       projectId: "penyimpanansaldo-280df",
-      storageBucket: "penyimpanansaldo-280df.firebasestorage.app",
+      storageBucket: "penyimpanansaldo-280df.appspot.com",
       messagingSenderId: "659609775130",
       appId: "1:659609775130:web:bdd088ca5a877498c5b5a3",
       measurementId: "G-L4TW7E23H2"
     };
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.database();
 
-    // Admin UID
-    const ADMIN_UID = "bZQaos8CypSSDbunhz8NWVpi4ne2";
+    const ADMIN_UID = "MtTAFgAjMqVRDlEFdfsxT56m29i1"; // hanya UID ini boleh akses
+    const ADMIN_EMAIL = "AdminNusaTask@gmail.com";
 
-    // Telegram Bot
-    const BOT_TOKEN = "8236562243:AAFIyLCk2fu9-4GxxYSuIoSKw9DEiv1DVko";
-    const CHAT_ID   = "8322802091";
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getDatabase(app);
 
-    function sendNotif(text,type="blue"){
-      const n=document.getElementById("notif");
-      n.innerText=text;
-      n.className="notif "+type;
-      n.style.display="block";
-      setTimeout(()=>n.style.display="none",4000);
-    }
+    const $ = (s)=>document.querySelector(s);
+    const authCard = $("#authCard");
+    const panel = $("#panel");
+    const content = $("#content");
+    const loader = $("#loader");
+    const toast = $("#toast");
+    const btnLogin = $("#btnLogin");
+    const logoutBtn = $("#logout");
+    const emailEl = $("#email");
+    const passEl = $("#password");
+    const navWD = $("#navWD"), navUsers=$("#navUsers"), navBanned=$("#navBanned");
 
-    function sendTelegram(msg){
-      fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`,{
-        method:"POST",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({ chat_id:CHAT_ID, text:msg, parse_mode:"HTML" })
-      });
-    }
+    function toastMsg(t){ toast.textContent=t; toast.classList.add("show"); setTimeout(()=>toast.classList.remove("show"),2000) }
+    function setLoading(v){ loader.style.display = v ? "flex":"none" }
 
-    // Auto login admin
-    auth.onAuthStateChanged(user=>{
-      if(user && user.uid===ADMIN_UID){
-        loadWithdraws();
-        loadBanned();
-        loadUsers();
-      } else if(!user){
-        auth.signInWithEmailAndPassword("adminuser@gmail.com","sendi1922")
-        .catch(e=>sendNotif("Login gagal: "+e.message,"red"));
-      }
+    // Manual login
+    btnLogin.addEventListener("click", async ()=>{
+      try{
+        setLoading(true);
+        const userCred = await signInWithEmailAndPassword(auth, emailEl.value.trim(), passEl.value.trim());
+        if(userCred.user.uid === ADMIN_UID){
+          localStorage.setItem("adminSession","true");
+          toastMsg("Login sukses, auto login aktif.");
+        }else{
+          toastMsg("UID tidak cocok, bukan admin.");
+          await signOut(auth);
+        }
+      }catch(e){ toastMsg("Login gagal: "+(e?.message||e)); }
+      finally{ setLoading(false); }
     });
 
-    // ================== Withdraw ==================
+    // Auto login check
+    onAuthStateChanged(auth, (u)=>{
+      if(!u){
+        authCard.style.display="block"; panel.style.display="none";
+        return;
+      }
+      if(u.uid !== ADMIN_UID){
+        toastMsg("Akses ditolak."); signOut(auth);
+        return;
+      }
+      authCard.style.display="none"; panel.style.display="block";
+      loadWithdraws(); // default tab
+    });
+
+    // Logout
+    logoutBtn.addEventListener("click", async ()=>{
+      await signOut(auth);
+      localStorage.removeItem("adminSession");
+      toastMsg("Logout berhasil.");
+    });
+
+    // Tabs
+    navWD.addEventListener("click", loadWithdraws);
+    navUsers.addEventListener("click", loadUsers);
+    navBanned.addEventListener("click", loadBanned);
+
+    // === Withdraw List ===
     function loadWithdraws(){
-      db.ref("withdrawals").on("value",snap=>{
-        const list=document.getElementById("wdList");
-        list.innerHTML="";
-        snap.forEach(item=>{
-          const wd=item.val();
-          const id=item.key;
+      setLoading(true);
+      content.innerHTML="";
+      onValue(ref(db,"withdrawals"), (snap)=>{
+        setLoading(false);
+        content.innerHTML="";
+        let found=0;
+        snap.forEach(ch=>{
+          const k=ch.key, w=ch.val();
+          found++;
           const div=document.createElement("div");
-          div.className="p-3 rounded bg-gray-700 flex justify-between items-center";
+          div.className="item";
           div.innerHTML=`
             <div>
-              <p>💰 Rp${wd.amount.toLocaleString("id-ID")} - ${wd.method} (${wd.wallet})</p>
-              <p>👤 UID: ${wd.userId}</p>
-              <p>⏳ Status: ${wd.status}</p>
+              <div><strong>UID:</strong> ${w.uid}</div>
+              <div>Rp${Number(w.nominal).toLocaleString()} • ${w.ewallet} • ${w.number}</div>
+              <div class="muted">Status: ${w.status||"pending"} • ${new Date(w.timestamp||Date.now()).toLocaleString()}</div>
             </div>
-            <div class="space-x-2">
-              <button class="px-2 py-1 bg-green-500 rounded" onclick="updateWD('${id}','success')">Success</button>
-              <button class="px-2 py-1 bg-red-500 rounded" onclick="updateWD('${id}','rejected')">Reject</button>
-              <button class="px-2 py-1 bg-gray-500 rounded" onclick="deleteWD('${id}')">Hapus</button>
+            <div style="display:flex;gap:6px">
+              <button class="btn btn-green" data-approve="${k}">Approve</button>
+              <button class="btn btn-red" data-reject="${k}">Reject</button>
             </div>
           `;
-          list.appendChild(div);
+          content.appendChild(div);
         });
+        if(!found) content.innerHTML="<div class='muted'>Belum ada pengajuan WD</div>";
+        content.querySelectorAll("[data-approve]").forEach(b=>b.onclick=()=>update(ref(db,"withdrawals/"+b.dataset.approve),{status:"approved"}));
+        content.querySelectorAll("[data-reject]").forEach(b=>b.onclick=()=>update(ref(db,"withdrawals/"+b.dataset.reject),{status:"rejected"}));
       });
     }
 
-    function updateWD(id,status){
-      db.ref("withdrawals/"+id+"/status").set(status);
-      sendNotif("WD "+id+" → "+status,"green");
-      sendTelegram(`🔔 Update WD ${id}\nStatus: ${status}`);
-    }
-
-    function deleteWD(id){
-      db.ref("withdrawals/"+id).remove();
-      sendNotif("WD "+id+" dihapus","red");
-    }
-
-    // ================== Banned ==================
-    function loadBanned(){
-      db.ref("banned").on("value",snap=>{
-        const list=document.getElementById("bannedList");
-        list.innerHTML="";
-        snap.forEach(item=>{
-          const uid=item.key;
-          const data=item.val();
-          const div=document.createElement("div");
-          div.className="p-3 rounded bg-red-700 flex justify-between items-center";
-          div.innerHTML=`
-            <div>
-              <p>👤 UID: ${uid}</p>
-              <p>❌ Alasan: ${data.reason||"-"}</p>
-              <p>📅 ${new Date(data.bannedAt).toLocaleString("id-ID")}</p>
-            </div>
-            <button class="px-3 py-1 bg-green-500 rounded" onclick="unbanUser('${uid}')">Unban</button>
-          `;
-          list.appendChild(div);
-        });
-      });
-    }
-
-    function banUser(uid){
-      const reason=prompt("Masukkan alasan ban:");
-      if(!reason) return;
-      db.ref("banned/"+uid).set({reason,bannedAt:Date.now()})
-        .then(()=>sendNotif("User "+uid+" diban","red"));
-    }
-
-    function unbanUser(uid){
-      db.ref("banned/"+uid).remove()
-        .then(()=>sendNotif("User "+uid+" di-unban","green"));
-    }
-
-    // ================== Users ==================
+    // === User List ===
     function loadUsers(){
-      db.ref("users").on("value",snap=>{
-        const list=document.getElementById("userList");
-        list.innerHTML="";
-        snap.forEach(item=>{
-          const uid=item.key;
-          const data=item.val();
+      setLoading(true);
+      content.innerHTML="";
+      onValue(ref(db,"users"), (snap)=>{
+        setLoading(false);
+        content.innerHTML="";
+        snap.forEach(ch=>{
+          const uid=ch.key, u=ch.val()||{};
           const div=document.createElement("div");
-          div.className="p-3 rounded bg-gray-700 flex justify-between items-center";
+          div.className="item";
           div.innerHTML=`
             <div>
-              <p>👤 UID: ${uid}</p>
-              <p>📧 Email: ${data.email||"-"}</p>
-              <p>💰 Saldo: Rp${(data.saldo||0).toLocaleString("id-ID")}</p>
-              <p>📱 Device/IP: ${data.deviceInfo||data.lastIP||"-"}</p>
-              <p>📅 Registrasi: ${data.createdAt?new Date(data.createdAt).toLocaleString("id-ID"):"-"}</p>
-              <p>🚫 Status: ${data.status||"active"}</p>
+              <div><strong>${u.email||"(tanpa email)"}</strong></div>
+              <div>Saldo: Rp${Number(u.saldo||0).toLocaleString()}</div>
+              <div class="muted">UID: ${uid} • IP: ${u.ip||"-"} • Device: ${u.deviceId||"-"}</div>
+              <div class="muted">Status: ${u.status||"active"}</div>
             </div>
-            <div class="space-x-2">
-              <button class="px-3 py-1 bg-red-500 rounded" onclick="banUser('${uid}')">Ban</button>
-              <button class="px-3 py-1 bg-green-500 rounded" onclick="unbanUser('${uid}')">Unban</button>
+            <div style="display:flex;gap:6px">
+              <button class="btn btn-red" data-ban="${uid}">Ban</button>
+              <button class="btn btn-green" data-unban="${uid}">Unban</button>
             </div>
           `;
-          list.appendChild(div);
+          content.appendChild(div);
         });
+        content.querySelectorAll("[data-ban]").forEach(b=>b.onclick=()=>update(ref(db,"users/"+b.dataset.ban),{status:"banned"}));
+        content.querySelectorAll("[data-unban]").forEach(b=>b.onclick=()=>update(ref(db,"users/"+b.dataset.unban),{status:"active"}));
+      });
+    }
+
+    // === Banned List ===
+    function loadBanned(){
+      setLoading(true);
+      content.innerHTML="";
+      onValue(ref(db,"users"), (snap)=>{
+        setLoading(false);
+        content.innerHTML="";
+        let found=0;
+        snap.forEach(ch=>{
+          const uid=ch.key, u=ch.val()||{};
+          if(u.status==="banned"){
+            found++;
+            const div=document.createElement("div");
+            div.className="item";
+            div.innerHTML=`
+              <div><strong>${u.email||"(tanpa email)"}</strong> • UID: ${uid}</div>
+              <button class="btn btn-green" data-unban="${uid}">Unban</button>
+            `;
+            content.appendChild(div);
+          }
+        });
+        if(!found) content.innerHTML="<div class='muted'>Tidak ada user banned</div>";
+        content.querySelectorAll("[data-unban]").forEach(b=>b.onclick=()=>update(ref(db,"users/"+b.dataset.unban),{status:"active"}));
       });
     }
   </script>
