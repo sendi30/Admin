@@ -1,55 +1,46 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Panel - NusaTask</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NusaTask Admin Panel</title>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
-<body class="bg-gray-900 text-white">
+<body class="bg-gray-950 text-gray-200 font-sans">
 
   <!-- Loading -->
-  <div id="loading" class="fixed inset-0 flex items-center justify-center bg-gray-900 z-50">
-    <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div>
+  <div id="loading" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center hidden">
+    <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-indigo-500"></div>
   </div>
 
-  <!-- Login Section -->
-  <div id="loginSection" class="hidden min-h-screen flex items-center justify-center">
-    <div class="bg-gray-800 p-6 rounded-xl shadow-lg w-96 text-center">
-      <h1 class="text-2xl font-bold mb-4">Admin Login</h1>
-      <input id="email" type="email" placeholder="Email"
-        class="w-full mb-3 p-2 rounded bg-gray-700 text-white focus:outline-none">
-      <input id="password" type="password" placeholder="Password"
-        class="w-full mb-3 p-2 rounded bg-gray-700 text-white focus:outline-none">
-      <button onclick="login()" class="w-full bg-blue-600 hover:bg-blue-700 py-2 rounded">Login</button>
-      <p id="loginError" class="text-red-400 text-sm mt-3 hidden"></p>
+  <!-- Login -->
+  <div id="loginScreen" class="h-screen flex items-center justify-center">
+    <div class="bg-gray-900 p-8 rounded-xl shadow-2xl w-96">
+      <h1 class="text-3xl font-bold mb-6 text-center text-indigo-400">🔐 Admin Login</h1>
+      <input id="email" type="email" placeholder="Email" class="w-full p-3 mb-4 rounded bg-gray-800 focus:outline-none">
+      <input id="password" type="password" placeholder="Password" class="w-full p-3 mb-4 rounded bg-gray-800 focus:outline-none">
+      <button onclick="login()" class="w-full bg-indigo-600 hover:bg-indigo-700 py-2 rounded-lg font-bold">Login</button>
     </div>
   </div>
 
-  <!-- Admin Section -->
-  <div id="adminSection" class="hidden p-6">
-    <h1 class="text-3xl font-bold mb-6">📊 Admin Panel NusaTask</h1>
+  <!-- Dashboard -->
+  <div id="dashboard" class="hidden p-6">
+    <h1 class="text-3xl font-bold mb-6 text-indigo-400">📊 NusaTask Admin Panel</h1>
 
-    <!-- Menu -->
-    <div class="grid grid-cols-3 gap-4 mb-6">
-      <button onclick="showPage('withdraw')" class="bg-yellow-500 p-4 rounded-lg shadow">💰 Withdraw</button>
-      <button onclick="showPage('users')" class="bg-blue-500 p-4 rounded-lg shadow">👥 Users</button>
-      <button onclick="showPage('banned')" class="bg-red-500 p-4 rounded-lg shadow">⛔ Banned</button>
+    <!-- Navigation -->
+    <div class="flex space-x-4 mb-6">
+      <button onclick="showUsers()" class="tabBtn px-4 py-2 rounded bg-gray-800 hover:bg-indigo-700">👥 Users</button>
+      <button onclick="showWithdrawals()" class="tabBtn px-4 py-2 rounded bg-gray-800 hover:bg-indigo-700">💸 Withdrawals</button>
+      <button onclick="showBanned()" class="tabBtn px-4 py-2 rounded bg-gray-800 hover:bg-indigo-700">🚫 Banned</button>
     </div>
 
     <!-- Content -->
-    <div id="content" class="bg-gray-800 p-4 rounded-xl shadow min-h-[400px]">
-      <p class="text-gray-400">Pilih menu untuk melihat data.</p>
-    </div>
-
-    <button onclick="logout()" class="mt-6 bg-gray-600 hover:bg-gray-700 py-2 px-6 rounded">Logout</button>
+    <div id="content" class="bg-gray-900 p-4 rounded-xl shadow-lg"></div>
   </div>
-
-  <!-- Toast Notification -->
-  <div id="toast" class="fixed bottom-5 right-5 hidden bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg"></div>
 
   <script>
     // Firebase Config
@@ -63,143 +54,117 @@
       appId: "1:659609775130:web:bdd088ca5a877498c5b5a3",
       measurementId: "G-L4TW7E23H2"
     };
-    firebase.initializeApp(firebaseConfig);
 
+    firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.database();
 
-    // UID admin resmi
+    const loading = document.getElementById("loading");
+    const loginScreen = document.getElementById("loginScreen");
+    const dashboard = document.getElementById("dashboard");
+    const content = document.getElementById("content");
+
     const ADMIN_UID = "MtTAFgAjMqVRDlEFdfsxT56m29i1";
+    const ADMIN_EMAIL = "adminnusatask@gmail.com";
 
-    // Helpers
-    function showToast(msg, type="success") {
-      const toast = document.getElementById("toast");
-      toast.innerText = msg;
-      toast.className = `fixed bottom-5 right-5 px-4 py-2 rounded-lg shadow-lg ${
-        type==="error" ? "bg-red-600" : "bg-green-600"
-      }`;
-      toast.style.display = "block";
-      setTimeout(()=> toast.style.display="none", 3000);
+    function setLoading(state) {
+      loading.classList.toggle("hidden", !state);
     }
-    function fmtDate(ts){ return ts ? new Date(ts).toLocaleString("id-ID") : "-"; }
-
-    // State check (pakai UID check)
-    auth.onAuthStateChanged(user => {
-      document.getElementById("loading").classList.add("hidden");
-
-      if (user && user.uid === ADMIN_UID) {
-        document.getElementById("loginSection").classList.add("hidden");
-        document.getElementById("adminSection").classList.remove("hidden");
-      } else {
-        if (user) auth.signOut(); // auto logout jika bukan admin
-        document.getElementById("loginSection").classList.remove("hidden");
-        document.getElementById("adminSection").classList.add("hidden");
-      }
-    });
 
     // Login
     function login() {
       const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
+      setLoading(true);
+
       auth.signInWithEmailAndPassword(email, password)
+        .then(userCred => {
+          if (userCred.user.uid !== ADMIN_UID || email !== ADMIN_EMAIL) {
+            setLoading(false);
+            Swal.fire("❌ Akses Ditolak", "Bukan akun admin!", "error");
+            auth.signOut();
+            return;
+          }
+          setLoading(false);
+          loginScreen.classList.add("hidden");
+          dashboard.classList.remove("hidden");
+          Swal.fire("✅ Login Berhasil", "", "success");
+          localStorage.setItem("adminLoggedIn", "true");
+        })
         .catch(err => {
-          document.getElementById("loginError").innerText = err.message;
-          document.getElementById("loginError").classList.remove("hidden");
+          setLoading(false);
+          Swal.fire("❌ Gagal Login", err.message, "error");
         });
     }
-    function logout(){ auth.signOut(); }
 
-    // Page Switcher
-    function showPage(page){
-      const content = document.getElementById("content");
-      content.innerHTML = `<p class="text-gray-400 animate-pulse">Loading ${page}...</p>`;
-
-      if(page==="withdraw"){
-        renderWithdrawals(content);
-      } else if(page==="users"){
-        renderUsers(content);
-      } else if(page==="banned"){
-        renderBanned(content);
+    // Auto login
+    window.onload = () => {
+      if (localStorage.getItem("adminLoggedIn") === "true") {
+        loginScreen.classList.add("hidden");
+        dashboard.classList.remove("hidden");
       }
-    }
+    };
 
-    // Render Withdrawals
-    function renderWithdrawals(container){
-      db.ref("withdrawals").once("value", snap=>{
-        if(!snap.exists()){ container.innerHTML="<p class='text-gray-400'>Tidak ada WD</p>"; return; }
-
-        let html = `
-          <h2 class="text-xl mb-3">Daftar Withdraw</h2>
-          <table class="w-full text-left">
-            <thead><tr><th>Email</th><th>Nominal</th><th>Metode</th><th>Status</th><th>Aksi</th></tr></thead>
-            <tbody>`;
-        snap.forEach(child=>{
-          const wd = child.val();
-          html += `<tr class="border-b border-gray-700">
-            <td>${wd.email||"-"}</td>
-            <td>Rp${wd.amount||0}</td>
-            <td>${wd.method||"-"}</td>
-            <td>${wd.status||"pending"}</td>
-            <td>
-              ${wd.status==="pending" ? `
-              <button onclick="approveWd('${child.key}','${wd.uid}',${wd.amount})" class="bg-green-600 px-2 py-1 rounded">Approve</button>
-              <button onclick="rejectWd('${child.key}')" class="bg-red-600 px-2 py-1 rounded">Reject</button>` : "-"}
-            </td>
-          </tr>`;
+    // Show Users
+    function showUsers() {
+      setLoading(true);
+      db.ref("users").once("value", snap => {
+        setLoading(false);
+        if (!snap.exists()) {
+          content.innerHTML = "<p>No users found</p>";
+          return;
+        }
+        let html = `<h2 class="text-xl mb-4">👥 Users</h2><table class="w-full text-left"><tr><th>Email</th><th>Saldo</th><th>Status</th></tr>`;
+        snap.forEach(child => {
+          const u = child.val();
+          html += `<tr class="border-b border-gray-700"><td>${u.email || '-'}</td><td>Rp ${u.saldo || 0}</td><td>${u.status || 'active'}</td></tr>`;
         });
-        html+="</tbody></table>";
-        container.innerHTML = html;
+        html += "</table>";
+        content.innerHTML = html;
       });
     }
 
-    // Approve / Reject Withdraw
-    function approveWd(id, uid, amount){
-      db.ref("withdrawals/"+id).update({status:"approved"});
-      db.ref("users/"+uid+"/saldo").transaction(saldo=>(saldo||0)-amount);
-      showToast("Withdraw Approved ✅");
-    }
-    function rejectWd(id){
-      db.ref("withdrawals/"+id).update({status:"rejected"});
-      showToast("Withdraw Rejected ❌","error");
-    }
-
-    // Render Users
-    function renderUsers(container){
-      db.ref("users").once("value", snap=>{
-        if(!snap.exists()){ container.innerHTML="<p class='text-gray-400'>Tidak ada User</p>"; return; }
-        let html = "<h2 class='text-xl mb-3'>Daftar User</h2><ul>";
-        snap.forEach(child=>{
-          let u=child.val();
-          html+=`<li class="mb-2 bg-gray-700 p-2 rounded">${u.email||"-"} - Saldo: Rp${u.saldo||0}
-            <button onclick="banUser('${child.key}')" class="bg-red-600 px-2 py-1 rounded ml-2">Ban</button>
-          </li>`;
+    // Show Withdrawals
+    function showWithdrawals() {
+      setLoading(true);
+      db.ref("withdrawals").once("value", snap => {
+        setLoading(false);
+        if (!snap.exists()) {
+          content.innerHTML = "<p>No withdrawals yet</p>";
+          return;
+        }
+        let html = `<h2 class="text-xl mb-4">💸 Withdrawals</h2><ul>`;
+        snap.forEach(child => {
+          const w = child.val();
+          html += `<li class="border-b border-gray-700 py-2">User: ${w.userId} | Amount: Rp ${w.amount} | Status: ${w.status}</li>`;
         });
-        html+="</ul>";
-        container.innerHTML=html;
+        html += "</ul>";
+        content.innerHTML = html;
       });
     }
-    function banUser(uid){
-      db.ref("banned/"+uid).set(true);
-      showToast("User dibanned ⛔","error");
-    }
 
-    // Render Banned
-    function renderBanned(container){
-      db.ref("banned").once("value", snap=>{
-        if(!snap.exists()){ container.innerHTML="<p class='text-gray-400'>Tidak ada user banned</p>"; return; }
-        let html="<h2 class='text-xl mb-3'>Daftar Banned</h2><ul>";
-        snap.forEach(c=>{
-          html+=`<li class="mb-2 bg-red-700 p-2 rounded">${c.key}
-            <button onclick="unbanUser('${c.key}')" class="bg-green-600 px-2 py-1 rounded ml-2">Unban</button>
-          </li>`;
+    // Show Banned
+    function showBanned() {
+      setLoading(true);
+      db.ref("banned").once("value", snap => {
+        setLoading(false);
+        if (!snap.exists()) {
+          content.innerHTML = "<p>No banned users</p>";
+          return;
+        }
+        let html = `<h2 class="text-xl mb-4">🚫 Banned Users</h2><ul>`;
+        snap.forEach(child => {
+          html += `<li class="border-b border-gray-700 py-2">${child.key} <button onclick="unban('${child.key}')" class="bg-red-600 hover:bg-red-700 px-2 py-1 ml-2 rounded">Unban</button></li>`;
         });
-        html+="</ul>";
-        container.innerHTML=html;
+        html += "</ul>";
+        content.innerHTML = html;
       });
     }
-    function unbanUser(uid){
-      db.ref("banned/"+uid).remove();
-      showToast("User di-Unban ✅");
+
+    function unban(uid) {
+      db.ref("banned/" + uid).remove()
+        .then(() => Swal.fire("✅ User di-Unban", "", "success"))
+        .catch(err => Swal.fire("❌ Error", err.message, "error"));
     }
   </script>
 </body>
