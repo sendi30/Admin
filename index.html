@@ -2,43 +2,52 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <title>WD - NusaTask</title>
+  <title>Admin Panel - NusaTask</title>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <style>
-    body { background-color: #0f172a; color: white; }
+    body { background-color: #0f172a; color: white; font-family: 'Inter', sans-serif; }
     .card { background-color: #1e293b; border-radius: 1rem; padding: 1.5rem; box-shadow: 0 4px 15px rgba(0,0,0,0.4); }
-    .notif { position: fixed; top: 20px; right: 20px; padding: 10px 20px; border-radius: 8px; display: none; }
+    .notif { 
+      position: fixed; top: 20px; right: 20px; padding: 12px 20px; 
+      border-radius: 8px; display: none; font-weight: 600; 
+      animation: fadeIn 0.4s ease-in-out;
+    }
     .notif.green { background: #22c55e; }
     .notif.red { background: #ef4444; }
     .notif.blue { background: #3b82f6; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
   </style>
 </head>
-<body class="flex items-center justify-center min-h-screen">
-  <div class="card w-full max-w-md">
-    <h1 class="text-2xl font-bold text-center mb-4">💰 Withdraw</h1>
+<body class="p-6">
 
-    <p id="saldo" class="text-center text-xl mb-4">Saldo: Rp0</p>
+  <h1 class="text-3xl font-bold text-center mb-6">⚡ Admin Panel - NusaTask</h1>
 
-    <form id="wdForm" class="space-y-3">
-      <input type="number" id="amount" placeholder="Nominal WD" class="w-full p-2 rounded text-black">
-      
-      <select id="method" class="w-full p-2 rounded text-black">
-        <option value="Dana">Dana</option>
-        <option value="OVO">OVO</option>
-        <option value="Gopay">Gopay</option>
-        <option value="ShopeePay">ShopeePay</option>
-      </select>
+  <div class="grid md:grid-cols-2 gap-6">
 
-      <input type="text" id="wallet" placeholder="Nomor E-Wallet" class="w-full p-2 rounded text-black">
+    <!-- Withdraw Section -->
+    <div class="card">
+      <h2 class="text-xl font-bold mb-3">💰 Daftar Withdraw</h2>
+      <div id="wdList" class="space-y-2 text-sm"></div>
+    </div>
 
-      <button type="submit" class="w-full py-2 rounded bg-green-500 hover:bg-green-600 transition">Ajukan WD</button>
-    </form>
+    <!-- Banned Section -->
+    <div class="card">
+      <h2 class="text-xl font-bold mb-3">🚫 Daftar Banned</h2>
+      <div id="bannedList" class="space-y-2 text-sm"></div>
+    </div>
 
-    <h2 class="text-xl font-semibold mt-6 mb-2">📜 Riwayat WD</h2>
-    <ul id="history" class="space-y-2 text-sm"></ul>
+    <!-- User Section -->
+    <div class="card md:col-span-2">
+      <h2 class="text-xl font-bold mb-3">👥 Daftar User</h2>
+      <div id="userList" class="space-y-2 text-sm"></div>
+    </div>
+
   </div>
 
   <div id="notif" class="notif"></div>
@@ -59,113 +68,141 @@
     const auth = firebase.auth();
     const db = firebase.database();
 
-    let userId = null;
+    // Admin UID
+    const ADMIN_UID = "bZQaos8CypSSDbunhz8NWVpi4ne2";
 
     // Telegram Bot
     const BOT_TOKEN = "8236562243:AAFIyLCk2fu9-4GxxYSuIoSKw9DEiv1DVko";
     const CHAT_ID   = "8322802091";
 
-    function sendNotif(text, type="blue"){
-      const n = document.getElementById("notif");
-      n.innerText = text;
-      n.className = "notif " + type;
-      n.style.display = "block";
-      setTimeout(()=>n.style.display="none", 4000);
+    function sendNotif(text,type="blue"){
+      const n=document.getElementById("notif");
+      n.innerText=text;
+      n.className="notif "+type;
+      n.style.display="block";
+      setTimeout(()=>n.style.display="none",4000);
     }
 
     function sendTelegram(msg){
-      fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({ chat_id: CHAT_ID, text: msg, parse_mode: "HTML" })
+      fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`,{
+        method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({ chat_id:CHAT_ID, text:msg, parse_mode:"HTML" })
       });
     }
 
-    // Auto login (pakai session)
+    // Auto login admin
     auth.onAuthStateChanged(user=>{
-      if(user){
-        userId = user.uid;
-        loadSaldo();
-        loadHistory();
-      } else {
-        // Auto login dengan akun sudah terdaftar
+      if(user && user.uid===ADMIN_UID){
+        loadWithdraws();
+        loadBanned();
+        loadUsers();
+      } else if(!user){
         auth.signInWithEmailAndPassword("adminuser@gmail.com","sendi1922")
         .catch(e=>sendNotif("Login gagal: "+e.message,"red"));
       }
     });
 
-    // Load Saldo
-    function loadSaldo(){
-      db.ref("users/"+userId+"/saldo").on("value",snap=>{
-        const saldo = snap.val()||0;
-        document.getElementById("saldo").innerText = "Saldo: Rp"+saldo.toLocaleString("id-ID");
-      });
-    }
-
-    // Submit WD
-    document.getElementById("wdForm").addEventListener("submit",e=>{
-      e.preventDefault();
-      const amount = parseInt(document.getElementById("amount").value);
-      const method = document.getElementById("method").value;
-      const wallet = document.getElementById("wallet").value;
-
-      if(amount < 30000) return sendNotif("Minimal WD Rp30.000","red");
-
-      db.ref("users/"+userId+"/saldo").once("value").then(snap=>{
-        const saldo = snap.val()||0;
-        if(amount > saldo) return sendNotif("Saldo tidak cukup","red");
-
-        const wdId = db.ref("withdrawals").push().key;
-        const data = {
-          userId, amount, method, wallet,
-          createdAt: Date.now(),
-          status: "pending"
-        };
-        db.ref("withdrawals/"+wdId).set(data);
-        db.ref("users/"+userId+"/saldo").set(saldo-amount);
-
-        sendNotif("WD diajukan!","green");
-
-        const msg = `
-📢 <b>WD Baru</b>
-💰 Jumlah: Rp${amount.toLocaleString("id-ID")}
-🏦 Metode: ${method}
-📱 Nomor: ${wallet}
-👤 UID: ${userId}
-⏳ Status: pending
-        `;
-        sendTelegram(msg);
-      });
-    });
-
-    // Load Riwayat WD
-    function loadHistory(){
-      db.ref("withdrawals").orderByChild("userId").equalTo(userId).on("value",snap=>{
-        const list = document.getElementById("history");
+    // ================== Withdraw ==================
+    function loadWithdraws(){
+      db.ref("withdrawals").on("value",snap=>{
+        const list=document.getElementById("wdList");
         list.innerHTML="";
         snap.forEach(item=>{
-          const wd = item.val();
-          const li = document.createElement("li");
-          li.className="p-2 rounded bg-gray-700";
-          li.innerText=`Rp${wd.amount.toLocaleString("id-ID")} - ${wd.method} - ${wd.wallet} [${wd.status}]`;
-          list.appendChild(li);
+          const wd=item.val();
+          const id=item.key;
+          const div=document.createElement("div");
+          div.className="p-3 rounded bg-gray-700 flex justify-between items-center";
+          div.innerHTML=`
+            <div>
+              <p>💰 Rp${wd.amount.toLocaleString("id-ID")} - ${wd.method} (${wd.wallet})</p>
+              <p>👤 UID: ${wd.userId}</p>
+              <p>⏳ Status: ${wd.status}</p>
+            </div>
+            <div class="space-x-2">
+              <button class="px-2 py-1 bg-green-500 rounded" onclick="updateWD('${id}','success')">Success</button>
+              <button class="px-2 py-1 bg-red-500 rounded" onclick="updateWD('${id}','rejected')">Reject</button>
+              <button class="px-2 py-1 bg-gray-500 rounded" onclick="deleteWD('${id}')">Hapus</button>
+            </div>
+          `;
+          list.appendChild(div);
         });
       });
     }
 
-    // Listener status update → kirim Telegram
-    db.ref("withdrawals").on("child_changed",snap=>{
-      const wd = snap.val();
-      const msg = `
-🔔 <b>Status WD Update</b>
-💰 Jumlah: Rp${wd.amount.toLocaleString("id-ID")}
-🏦 Metode: ${wd.method}
-📱 Nomor: ${wd.wallet}
-👤 UID: ${wd.userId}
-✅ Status: ${wd.status}
-      `;
-      sendTelegram(msg);
-    });
+    function updateWD(id,status){
+      db.ref("withdrawals/"+id+"/status").set(status);
+      sendNotif("WD "+id+" → "+status,"green");
+      sendTelegram(`🔔 Update WD ${id}\nStatus: ${status}`);
+    }
+
+    function deleteWD(id){
+      db.ref("withdrawals/"+id).remove();
+      sendNotif("WD "+id+" dihapus","red");
+    }
+
+    // ================== Banned ==================
+    function loadBanned(){
+      db.ref("banned").on("value",snap=>{
+        const list=document.getElementById("bannedList");
+        list.innerHTML="";
+        snap.forEach(item=>{
+          const uid=item.key;
+          const data=item.val();
+          const div=document.createElement("div");
+          div.className="p-3 rounded bg-red-700 flex justify-between items-center";
+          div.innerHTML=`
+            <div>
+              <p>👤 UID: ${uid}</p>
+              <p>❌ Alasan: ${data.reason||"-"}</p>
+              <p>📅 ${new Date(data.bannedAt).toLocaleString("id-ID")}</p>
+            </div>
+            <button class="px-3 py-1 bg-green-500 rounded" onclick="unbanUser('${uid}')">Unban</button>
+          `;
+          list.appendChild(div);
+        });
+      });
+    }
+
+    function banUser(uid){
+      const reason=prompt("Masukkan alasan ban:");
+      if(!reason) return;
+      db.ref("banned/"+uid).set({reason,bannedAt:Date.now()})
+        .then(()=>sendNotif("User "+uid+" diban","red"));
+    }
+
+    function unbanUser(uid){
+      db.ref("banned/"+uid).remove()
+        .then(()=>sendNotif("User "+uid+" di-unban","green"));
+    }
+
+    // ================== Users ==================
+    function loadUsers(){
+      db.ref("users").on("value",snap=>{
+        const list=document.getElementById("userList");
+        list.innerHTML="";
+        snap.forEach(item=>{
+          const uid=item.key;
+          const data=item.val();
+          const div=document.createElement("div");
+          div.className="p-3 rounded bg-gray-700 flex justify-between items-center";
+          div.innerHTML=`
+            <div>
+              <p>👤 UID: ${uid}</p>
+              <p>📧 Email: ${data.email||"-"}</p>
+              <p>💰 Saldo: Rp${(data.saldo||0).toLocaleString("id-ID")}</p>
+              <p>📱 Device/IP: ${data.deviceInfo||data.lastIP||"-"}</p>
+              <p>📅 Registrasi: ${data.createdAt?new Date(data.createdAt).toLocaleString("id-ID"):"-"}</p>
+              <p>🚫 Status: ${data.status||"active"}</p>
+            </div>
+            <div class="space-x-2">
+              <button class="px-3 py-1 bg-red-500 rounded" onclick="banUser('${uid}')">Ban</button>
+              <button class="px-3 py-1 bg-green-500 rounded" onclick="unbanUser('${uid}')">Unban</button>
+            </div>
+          `;
+          list.appendChild(div);
+        });
+      });
+    }
   </script>
 </body>
 </html>
