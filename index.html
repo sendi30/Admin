@@ -1,171 +1,230 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NusaTask Admin Panel</title>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>NUSATASK — Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0b0f13;--card:#0f1720;--muted:#9aa2af;
+    --accent:#7c5cff;--accent-2:#44d7b6;
+    --danger:#ff4d6d;--success:#22c55e;
+  }
+  body{margin:0;background:linear-gradient(180deg,#060a0f,#0a1018);font-family:Inter;color:#e6eef8}
+  .wrap{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}
+  .app{max-width:420px;width:100%;background:var(--card);border-radius:18px;padding:20px;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+  header{display:flex;justify-content:space-between;align-items:center}
+  .logo{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--accent),#2f80ed);display:flex;align-items:center;justify-content:center;font-weight:800}
+  .saldo{padding:8px 12px;border-radius:10px;background:rgba(255,255,255,.05);color:var(--accent-2);font-weight:700}
+  .card{margin-top:16px;padding:16px;border-radius:14px;background:rgba(255,255,255,.02)}
+  .btn{width:100%;padding:14px;border-radius:12px;font-weight:700;border:none;cursor:pointer;font-size:16px;background:linear-gradient(90deg,var(--accent),#5f6cff);color:#fff;transition:all .3s ease}
+  .btn:disabled{background:#2a2d33;cursor:not-allowed;color:#777}
+  input{width:100%;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:transparent;color:#fff;margin-bottom:8px}
+  /* Toast */
+  .toast-wrap{position:fixed;bottom:20px;right:20px;display:flex;flex-direction:column;gap:10px;z-index:9999}
+  .toast{background:#1e293b;color:#fff;padding:12px 16px;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.3);opacity:0;transform:translateY(20px);transition:all .3s ease;font-size:14px}
+  .toast.show{opacity:1;transform:translateY(0)}
+  .toast.success{border-left:4px solid var(--success)}
+  .toast.error{border-left:4px solid var(--danger)}
+  .toast.info{border-left:4px solid var(--accent)}
+  /* Progress bar */
+  .progress{height:8px;border-radius:6px;background:#2a2d33;margin-top:8px;overflow:hidden}
+  .progress>div{height:100%;background:linear-gradient(90deg,var(--accent-2),#4ade80);width:0%}
+</style>
 </head>
-<body class="bg-gray-950 text-gray-200 font-sans">
+<body>
+<div class="wrap">
+  <div class="app">
+    <header>
+      <div class="logo">NT</div>
+      <div id="saldoBox" class="saldo" style="display:none">Rp 0</div>
+    </header>
 
-  <!-- Loading -->
-  <div id="loading" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center hidden">
-    <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-indigo-500"></div>
-  </div>
-
-  <!-- Login -->
-  <div id="loginScreen" class="h-screen flex items-center justify-center">
-    <div class="bg-gray-900 p-8 rounded-xl shadow-2xl w-96">
-      <h1 class="text-3xl font-bold mb-6 text-center text-indigo-400">🔐 Admin Login</h1>
-      <input id="email" type="email" placeholder="Email" class="w-full p-3 mb-4 rounded bg-gray-800 focus:outline-none">
-      <input id="password" type="password" placeholder="Password" class="w-full p-3 mb-4 rounded bg-gray-800 focus:outline-none">
-      <button onclick="login()" class="w-full bg-indigo-600 hover:bg-indigo-700 py-2 rounded-lg font-bold">Login</button>
-    </div>
-  </div>
-
-  <!-- Dashboard -->
-  <div id="dashboard" class="hidden p-6">
-    <h1 class="text-3xl font-bold mb-6 text-indigo-400">📊 NusaTask Admin Panel</h1>
-
-    <!-- Navigation -->
-    <div class="flex space-x-4 mb-6">
-      <button onclick="showUsers()" class="tabBtn px-4 py-2 rounded bg-gray-800 hover:bg-indigo-700">👥 Users</button>
-      <button onclick="showWithdrawals()" class="tabBtn px-4 py-2 rounded bg-gray-800 hover:bg-indigo-700">💸 Withdrawals</button>
-      <button onclick="showBanned()" class="tabBtn px-4 py-2 rounded bg-gray-800 hover:bg-indigo-700">🚫 Banned</button>
+    <!-- Auth -->
+    <div id="authBox" class="card">
+      <h3>Registrasi / Login</h3>
+      <input id="email" type="email" placeholder="Email"/>
+      <input id="password" type="password" placeholder="Password"/>
+      <button id="registerBtn" class="btn">Register</button>
+      <button id="loginBtn" class="btn" style="margin-top:8px;background:linear-gradient(90deg,#33a3ff,#6dd3ff)">Login</button>
     </div>
 
-    <!-- Content -->
-    <div id="content" class="bg-gray-900 p-4 rounded-xl shadow-lg"></div>
+    <!-- Dashboard -->
+    <div id="dash" class="card" style="display:none">
+      <h3>Dashboard</h3>
+      <p>Email: <span id="userEmail"></span></p>
+      <button id="earnBtn" class="btn">MENGHASILKAN</button>
+      <p id="cooldownText" style="font-size:13px;color:var(--muted);margin-top:6px">Siap digunakan</p>
+      <div class="progress"><div id="progressBar"></div></div>
+      <p id="countText" style="font-size:13px;color:var(--muted);margin-top:4px"></p>
+    </div>
   </div>
+</div>
 
-  <script>
-    // Firebase Config
-    const firebaseConfig = {
-      apiKey: "AIzaSyCrFmaHbmL299cum51EtJIjt5NpukpTmho",
-      authDomain: "penyimpanansaldo-280df.firebaseapp.com",
-      databaseURL: "https://penyimpanansaldo-280df-default-rtdb.asia-southeast1.firebasedatabase.app",
-      projectId: "penyimpanansaldo-280df",
-      storageBucket: "penyimpanansaldo-280df.appspot.com",
-      messagingSenderId: "659609775130",
-      appId: "1:659609775130:web:bdd088ca5a877498c5b5a3",
-      measurementId: "G-L4TW7E23H2"
-    };
+<!-- Toast container -->
+<div class="toast-wrap" id="toastWrap"></div>
 
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.database();
+<!-- Monetag SDK -->
+<script src='//libtl.com/sdk.js' data-zone='9779635' data-sdk='show_9779635'></script>
 
-    const loading = document.getElementById("loading");
-    const loginScreen = document.getElementById("loginScreen");
-    const dashboard = document.getElementById("dashboard");
-    const content = document.getElementById("content");
+<!-- Firebase modular -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+  import { getDatabase, ref, set, get, update, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
 
-    const ADMIN_UID = "MtTAFgAjMqVRDlEFdfsxT56m29i1";
-    const ADMIN_EMAIL = "adminnusatask@gmail.com";
+  const firebaseConfig = {
+    apiKey: "AIzaSyAUcac_uXdofDbqPwltgb4m7qIPiQhJi0s",
+    authDomain: "nusataskproject.firebaseapp.com",
+    databaseURL: "https://nusataskproject-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "nusataskproject",
+    storageBucket: "nusataskproject.firebasestorage.app",
+    messagingSenderId: "409602188456",
+    appId: "1:409602188456:web:6302d3030b763324e28e9d",
+    measurementId: "G-9389QL1WRE"
+  };
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getDatabase(app);
 
-    function setLoading(state) {
-      loading.classList.toggle("hidden", !state);
+  // UI elements
+  const authBox = document.getElementById("authBox");
+  const dash = document.getElementById("dash");
+  const saldoBox = document.getElementById("saldoBox");
+  const saldoEl = document.getElementById("saldoBox");
+  const userEmailEl = document.getElementById("userEmail");
+  const earnBtn = document.getElementById("earnBtn");
+  const cooldownText = document.getElementById("cooldownText");
+  const progressBar = document.getElementById("progressBar");
+  const countText = document.getElementById("countText");
+
+  // Toast
+  function toast(msg,type="info"){
+    const wrap=document.getElementById("toastWrap");
+    const t=document.createElement("div");
+    t.className=`toast ${type}`;
+    t.innerText=msg;
+    wrap.appendChild(t);
+    setTimeout(()=>t.classList.add("show"),100);
+    setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300)},3000);
+  }
+
+  // Register
+  document.getElementById("registerBtn").onclick=async()=>{
+    const email=document.getElementById("email").value;
+    const pw=document.getElementById("password").value;
+    try{
+      await createUserWithEmailAndPassword(auth,email,pw);
+      await set(ref(db,"users/"+auth.currentUser.uid),{
+        email,
+        balance:0,
+        lastEarnAt:0,
+        actionsToday:0,
+        lastReset:0,
+        createdAt:serverTimestamp()
+      });
+      toast("Registrasi sukses!","success");
+    }catch(e){ toast("Error: "+e.message,"error"); }
+  };
+
+  // Login
+  document.getElementById("loginBtn").onclick=async()=>{
+    const email=document.getElementById("email").value;
+    const pw=document.getElementById("password").value;
+    try{
+      await signInWithEmailAndPassword(auth,email,pw);
+      toast("Login berhasil","success");
+    }catch(e){ toast("Login gagal: "+e.message,"error"); }
+  };
+
+  // Session
+  onAuthStateChanged(auth,async user=>{
+    if(user){
+      authBox.style.display="none";
+      dash.style.display="block";
+      saldoBox.style.display="block";
+      userEmailEl.textContent=user.email;
+      await refreshUser();
+    }else{
+      authBox.style.display="block";
+      dash.style.display="none";
+      saldoBox.style.display="none";
     }
+  });
 
-    // Login
-    function login() {
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
-      setLoading(true);
+  async function refreshUser(){
+    const uid=auth.currentUser.uid;
+    const snap=await get(ref(db,"users/"+uid));
+    if(!snap.exists()) return;
+    const data=snap.val();
+    saldoEl.textContent="Rp "+(data.balance||0);
+    updateProgress(data);
+    checkCooldown(data);
+  }
 
-      auth.signInWithEmailAndPassword(email, password)
-        .then(userCred => {
-          if (userCred.user.uid !== ADMIN_UID || email !== ADMIN_EMAIL) {
-            setLoading(false);
-            Swal.fire("❌ Akses Ditolak", "Bukan akun admin!", "error");
-            auth.signOut();
-            return;
-          }
-          setLoading(false);
-          loginScreen.classList.add("hidden");
-          dashboard.classList.remove("hidden");
-          Swal.fire("✅ Login Berhasil", "", "success");
-          localStorage.setItem("adminLoggedIn", "true");
-        })
-        .catch(err => {
-          setLoading(false);
-          Swal.fire("❌ Gagal Login", err.message, "error");
-        });
+  function updateProgress(data){
+    const todayCount=data.actionsToday||0;
+    countText.textContent=`${todayCount}/30 kali hari ini`;
+    const percent=Math.min((todayCount/30)*100,100);
+    progressBar.style.width=percent+"%";
+  }
+
+  function checkCooldown(data){
+    const now=Date.now();
+    const last=(data.lastEarnAt||0);
+    const diff=Math.floor((now-last)/1000);
+    const cd=240; // 4 menit
+    if(diff<cd){
+      const remain=cd-diff;
+      earnBtn.disabled=true;
+      cooldownText.textContent=`Cooldown ${remain}s`;
+      const timer=setInterval(()=>{
+        const r=Math.max(0,cd-Math.floor((Date.now()-last)/1000));
+        cooldownText.textContent=r>0?`Cooldown ${r}s`:"Siap digunakan";
+        if(r<=0){clearInterval(timer);earnBtn.disabled=false;}
+      },1000);
+    }else{
+      earnBtn.disabled=false;
+      cooldownText.textContent="Siap digunakan";
     }
+  }
 
-    // Auto login
-    window.onload = () => {
-      if (localStorage.getItem("adminLoggedIn") === "true") {
-        loginScreen.classList.add("hidden");
-        dashboard.classList.remove("hidden");
-      }
-    };
-
-    // Show Users
-    function showUsers() {
-      setLoading(true);
-      db.ref("users").once("value", snap => {
-        setLoading(false);
-        if (!snap.exists()) {
-          content.innerHTML = "<p>No users found</p>";
+  // Earn button → Monetag Rewarded Ad
+  earnBtn.onclick=async()=>{
+    earnBtn.disabled=true;
+    cooldownText.textContent="Menunggu iklan...";
+    try{
+      show_9779635().then(async()=>{
+        const uid=auth.currentUser.uid;
+        const userRef=ref(db,"users/"+uid);
+        const snap=await get(userRef);
+        let data=snap.val();
+        // reset jam 6 pagi
+        const now=new Date(); const h=now.getHours();
+        if(h>=6 && (data.lastReset||0)<new Date().setHours(6,0,0,0)){
+          await update(userRef,{actionsToday:0,lastReset:Date.now()});
+          data.actionsToday=0;
+        }
+        if((data.actionsToday||0)>=30){
+          toast("Batas harian tercapai","error");
+          earnBtn.disabled=false;
           return;
         }
-        let html = `<h2 class="text-xl mb-4">👥 Users</h2><table class="w-full text-left"><tr><th>Email</th><th>Saldo</th><th>Status</th></tr>`;
-        snap.forEach(child => {
-          const u = child.val();
-          html += `<tr class="border-b border-gray-700"><td>${u.email || '-'}</td><td>Rp ${u.saldo || 0}</td><td>${u.status || 'active'}</td></tr>`;
+        const newBalance=(data.balance||0)+100;
+        await update(userRef,{
+          balance:newBalance,
+          lastEarnAt:Date.now(),
+          actionsToday:(data.actionsToday||0)+1
         });
-        html += "</table>";
-        content.innerHTML = html;
+        toast("Reward diterima +Rp100!","success");
+        await refreshUser();
       });
+    }catch(e){
+      toast("Iklan gagal: "+e.message,"error");
+      earnBtn.disabled=false;
     }
-
-    // Show Withdrawals
-    function showWithdrawals() {
-      setLoading(true);
-      db.ref("withdrawals").once("value", snap => {
-        setLoading(false);
-        if (!snap.exists()) {
-          content.innerHTML = "<p>No withdrawals yet</p>";
-          return;
-        }
-        let html = `<h2 class="text-xl mb-4">💸 Withdrawals</h2><ul>`;
-        snap.forEach(child => {
-          const w = child.val();
-          html += `<li class="border-b border-gray-700 py-2">User: ${w.userId} | Amount: Rp ${w.amount} | Status: ${w.status}</li>`;
-        });
-        html += "</ul>";
-        content.innerHTML = html;
-      });
-    }
-
-    // Show Banned
-    function showBanned() {
-      setLoading(true);
-      db.ref("banned").once("value", snap => {
-        setLoading(false);
-        if (!snap.exists()) {
-          content.innerHTML = "<p>No banned users</p>";
-          return;
-        }
-        let html = `<h2 class="text-xl mb-4">🚫 Banned Users</h2><ul>`;
-        snap.forEach(child => {
-          html += `<li class="border-b border-gray-700 py-2">${child.key} <button onclick="unban('${child.key}')" class="bg-red-600 hover:bg-red-700 px-2 py-1 ml-2 rounded">Unban</button></li>`;
-        });
-        html += "</ul>";
-        content.innerHTML = html;
-      });
-    }
-
-    function unban(uid) {
-      db.ref("banned/" + uid).remove()
-        .then(() => Swal.fire("✅ User di-Unban", "", "success"))
-        .catch(err => Swal.fire("❌ Error", err.message, "error"));
-    }
-  </script>
+  };
+</script>
 </body>
 </html>
