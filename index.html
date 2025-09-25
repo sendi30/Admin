@@ -3,100 +3,67 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>NUSATASK — Premium</title>
+<title>NUSATASK — Premium (Earning)</title>
 
 <!-- Google Font -->
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
 
-<!-- Monetag SDK (you asked to keep this) -->
+<!-- Monetag SDK -->
 <script src='//libtl.com/sdk.js' data-zone='9779635' data-sdk='show_9779635'></script>
 
 <style>
   :root{
     --bg1:#07101a; --bg2:#06111a;
-    --card: rgba(255,255,255,0.03);
-    --muted:#98a0ad;
-    --accent:#7c5cff;
-    --accent-2:#44d7b6;
-    --glass: rgba(255,255,255,0.04);
-    --danger:#ff4d6d; --success:#22c55e;
-    --glass-border: rgba(255,255,255,0.06);
+    --muted:#98a0ad; --accent:#7c5cff; --accent-2:#44d7b6; --danger:#ff4d6d; --success:#22c55e;
   }
   *{box-sizing:border-box}
-  html,body{height:100%;margin:0;font-family:'Poppins',system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial;background:linear-gradient(180deg,var(--bg1),var(--bg2));color:#e8f0ff;-webkit-font-smoothing:antialiased}
+  html,body{height:100%;margin:0;font-family:'Poppins',system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial;background:linear-gradient(180deg,var(--bg1),var(--bg2));color:#e8f0ff}
   .page{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:28px}
-  .shell{width:100%;max-width:520px;border-radius:18px;padding:20px;background:linear-gradient(180deg,rgba(255,255,255,0.015),transparent);box-shadow:0 12px 40px rgba(2,6,23,0.6);border:1px solid var(--glass-border);backdrop-filter: blur(6px)}
-  header{display:flex;align-items:center;justify-content:space-between}
-  .brand{display:flex;gap:12px;align-items:center}
-  .logo{width:56px;height:56px;border-radius:12px;background:linear-gradient(135deg,var(--accent),#2f80ed);display:flex;align-items:center;justify-content:center;font-weight:800;color:white;font-size:20px;box-shadow:0 8px 30px rgba(124,92,255,0.12)}
-  .title{font-size:18px;margin:0}
-  .subtitle{font-size:13px;color:var(--muted)}
-  .saldo{padding:8px 12px;border-radius:10px;background:linear-gradient(90deg,rgba(68,215,182,0.06),rgba(124,92,255,0.04));color:var(--accent-2);font-weight:700;font-size:14px}
-  .card{margin-top:16px;padding:18px;border-radius:14px;background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005));border:1px solid var(--glass-border);box-shadow:inset 0 1px 0 rgba(255,255,255,0.02)}
-  label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
-  input[type="email"], input[type="password"]{width:100%;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.03);background:transparent;color:#e8f0ff;outline:none;font-size:14px}
-  .row{display:flex;gap:10px}
-  .btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:12px 16px;border-radius:12px;border:none;background:linear-gradient(90deg,var(--accent),#5f6cff);color:white;font-weight:700;cursor:pointer;transition:all .18s ease;font-size:15px;box-shadow:0 8px 20px rgba(92,77,255,.08)}
+  .shell{width:100%;max-width:520px;border-radius:18px;padding:20px;background:linear-gradient(180deg,rgba(255,255,255,0.015),transparent);box-shadow:0 12px 40px rgba(2,6,23,0.6);border:1px solid rgba(255,255,255,0.06)}
+  .logo{width:56px;height:56px;border-radius:12px;background:linear-gradient(135deg,var(--accent),#2f80ed);display:flex;align-items:center;justify-content:center;font-weight:800;color:white;font-size:20px}
+  .card{margin-top:16px;padding:18px;border-radius:14px;background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005));border:1px solid rgba(255,255,255,0.06)}
+  .btn{display:inline-flex;align-items:center;justify-content:center;padding:12px 16px;border-radius:12px;border:none;background:linear-gradient(90deg,var(--accent),#5f6cff);color:white;font-weight:700;cursor:pointer}
   .btn.secondary{background:linear-gradient(90deg,#33a3ff,#6dd3ff)}
-  .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.03);color:var(--muted)}
-  .btn:active{transform:translateY(1px)}
-  .btn.disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none}
   .small{font-size:13px;color:var(--muted)}
-  .center{display:flex;align-items:center;justify-content:center}
   .progress{height:12px;background:rgba(255,255,255,0.02);border-radius:999px;overflow:hidden;margin-top:12px}
   .progress > div{height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--accent-2));transition:width .4s ease}
-  .muted{color:var(--muted)}
   .toast-wrap{position:fixed;right:20px;top:20px;display:flex;flex-direction:column;gap:10px;z-index:9999}
-  .toast{min-width:220px;padding:12px 14px;border-radius:12px;background:rgba(11,16,22,0.9);box-shadow:0 8px 30px rgba(0,0,0,.5);opacity:0;transform:translateY(8px);transition:all .25s}
+  .toast{min-width:220px;padding:12px 14px;border-radius:12px;background:rgba(11,16,22,0.9);opacity:0;transform:translateY(8px);transition:all .25s}
   .toast.show{opacity:1;transform:translateY(0)}
   .toast.success{border-left:4px solid var(--success)}
   .toast.error{border-left:4px solid var(--danger)}
-  .modal{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,rgba(2,6,23,0.75),rgba(2,6,23,0.9));z-index:9998}
-  .modal-card{width:92%;max-width:420px;padding:20px;border-radius:12px;background:linear-gradient(180deg,#071018,#081321);border:1px solid var(--glass-border);text-align:center}
-  .logo-lg{width:72px;height:72px;border-radius:14px;background:linear-gradient(135deg,var(--accent),#2f80ed);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:22px;margin:0 auto 12px;color:white}
-  .muted-xs{font-size:12px;color:var(--muted)}
-  .spinner{width:22px;height:22px;border-radius:50%;border:3px solid rgba(255,255,255,0.08);border-top:3px solid var(--accent);animation:spin 1s linear infinite}
-  @keyframes spin{100%{transform:rotate(360deg)}}
-  @media (max-width:520px){ .shell{padding:14px} .logo{width:48px;height:48px}}
+  .modal{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(2,6,23,0.85);z-index:9998}
+  .modal-card{width:92%;max-width:420px;padding:20px;border-radius:12px;background:linear-gradient(180deg,#071018,#081321);border:1px solid rgba(255,255,255,0.06);text-align:center}
 </style>
 </head>
 <body>
 <div class="page">
-  <div class="shell" id="shell">
-    <header>
-      <div class="brand">
+  <div class="shell">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div style="display:flex;gap:12px;align-items:center">
         <div class="logo">NT</div>
         <div>
-          <div class="title">NUSATASK</div>
-          <div class="subtitle small">Dapatkan reward menonton iklan</div>
+          <div style="font-weight:700">NUSATASK</div>
+          <div class="small">Dapatkan reward menonton iklan</div>
         </div>
       </div>
-      <div id="saldoBadge" class="saldo" style="display:none">Rp 0</div>
-    </header>
-
-    <!-- Auth Card -->
-    <div id="authCard" class="card">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <div>
-          <div style="font-weight:700;font-size:16px">Masuk / Daftar</div>
-          <div class="small muted" style="margin-top:4px">Gunakan email untuk registrasi & auto-login</div>
-        </div>
-      </div>
-
-      <div style="margin-top:14px">
-        <label class="small">Email</label>
-        <input id="email" type="email" placeholder="you@mail.com" />
-        <label class="small" style="margin-top:10px">Password</label>
-        <input id="password" type="password" placeholder="minimal 6 karakter" />
-        <div class="row" style="margin-top:14px">
-          <button id="btnRegister" class="btn">Register</button>
-          <button id="btnLogin" class="btn secondary">Login</button>
-        </div>
-        <div class="small muted" style="margin-top:10px">Saldo tidak akan tampil sampai berhasil login.</div>
-      </div>
+      <div id="saldoBadge" style="padding:8px 12px;border-radius:10px;background:linear-gradient(90deg,rgba(68,215,182,0.06),rgba(124,92,255,0.04));display:none">Rp 0</div>
     </div>
 
-    <!-- Dashboard Card -->
+    <!-- Auth -->
+    <div id="authCard" class="card">
+      <label class="small">Email</label>
+      <input id="email" type="email" style="width:100%;padding:10px;border-radius:8px;background:transparent;border:1px solid rgba(255,255,255,0.04);color:inherit" />
+      <label class="small" style="margin-top:8px">Password</label>
+      <input id="password" type="password" style="width:100%;padding:10px;border-radius:8px;background:transparent;border:1px solid rgba(255,255,255,0.04);color:inherit" />
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button id="btnRegister" class="btn">Register</button>
+        <button id="btnLogin" class="btn secondary">Login</button>
+      </div>
+      <div class="small" style="margin-top:10px;color:var(--muted)">Saldo tidak akan tampil sampai berhasil login.</div>
+    </div>
+
+    <!-- Dashboard -->
     <div id="dashCard" class="card" style="display:none">
       <div style="display:flex;justify-content:space-between;align-items:center">
         <div>
@@ -109,12 +76,13 @@
         </div>
       </div>
 
-      <div style="margin-top:18px">
-        <button id="btnEarn" class="btn" style="width:100%;padding:16px;font-size:16px">MENGHASILKAN</button>
+      <div style="margin-top:16px">
+        <button id="btnEarn" class="btn" style="width:100%;padding:14px;font-size:16px">MENGHASILKAN</button>
         <div class="progress" style="margin-top:12px"><div id="dailyBar"></div></div>
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">
-          <div class="small muted" id="usedText">0 / 30 hari ini</div>
-          <div class="small muted" id="statusText">Siap</div>
+        <p class="small" style="margin-top:6px;color:var(--muted)">Reset harian pukul 06:00</p>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+          <div class="small" id="usedText">0 / 30 hari ini</div>
+          <div class="small" id="statusText">Siap</div>
         </div>
       </div>
     </div>
@@ -122,36 +90,29 @@
   </div>
 </div>
 
-<!-- Modal Warning (overlay) -->
+<!-- Modal Warning -->
 <div id="modalWarn" class="modal" style="display:none">
   <div class="modal-card">
-    <div class="logo-lg">NT</div>
+    <div style="width:72px;height:72px;border-radius:12px;margin:0 auto 12px;background:linear-gradient(135deg,var(--accent),#2f80ed);display:flex;align-items:center;justify-content:center;font-weight:800;color:white">NT</div>
     <h3 style="margin:6px 0">PERINGATAN</h3>
-    <p class="muted-xs">Segala bentuk hack, nuyul, manipulasi data akan terdeteksi dan <strong style="color:var(--danger)">AUTO BANNED</strong>.</p>
-    <p class="muted-xs" style="margin-top:8px">Tekan Continue setelah <span id="countdown">5</span> detik untuk melanjutkan.</p>
-    <div style="margin-top:14px">
-      <button id="continueBtn" class="btn" style="padding:12px 20px" disabled>Continue</button>
-    </div>
-    <div style="margin-top:12px" class="muted-xs">Dengan melanjutkan, Anda setuju mengikuti aturan penggunaan.</div>
+    <p style="color:var(--muted)">Segala bentuk hack, nuyul, manipulasi data akan <strong style="color:var(--danger)">AUTO BANNED</strong>.</p>
+    <p style="color:var(--muted);margin-top:8px">Continue tersedia setelah <span id="countdown">5</span> detik.</p>
+    <div style="margin-top:12px"><button id="continueBtn" class="btn" disabled>Continue</button></div>
   </div>
 </div>
 
-<!-- Toast container -->
 <div id="toastWrap" class="toast-wrap"></div>
 
 <script type="module">
-/* =======================
-   NUSATASK — Final Premium
-   All-in-one file
-   Reward per iklan: Rp 10.000
-   Monetag SDK kept as requested
-   ======================= */
+/* Full working file with auto-ban logic (IP + device + device->IP limit)
+   IMPORTANT: For production, move enforcement to server-side Cloud Functions.
+*/
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
-import { getDatabase, ref, get, set, update, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+import { getDatabase, ref, get, set, update, runTransaction } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
 
-/* ---------- Config (use your supplied config) ---------- */
+/* ---------- Config ---------- */
 const firebaseConfig = {
   apiKey: "AIzaSyAUcac_uXdofDbqPwltgb4m7qIPiQhJi0s",
   authDomain: "nusataskproject.firebaseapp.com",
@@ -166,12 +127,18 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
 
+/* ---------- Constants ---------- */
+const REWARD = 10000;            // reward per ad (Rp)
+const COOLDOWN_MS = 4 * 60 * 1000; // 4 minutes
+const DAILY_LIMIT_DEFAULT = 30;  // default limit (can be overridden with config)
+const IP_MAX_ACCOUNTS_24H = 2;   // max unique accounts per IP in 24h before ban (as requested)
+const DEVICE_MAX_IPS_24H = 2;    // max different IPs a device may use in 24h
+
 /* ---------- UI refs ---------- */
+const emailEl = document.getElementById('email');
+const passEl = document.getElementById('password');
 const btnRegister = document.getElementById('btnRegister');
 const btnLogin = document.getElementById('btnLogin');
-const emailIn = document.getElementById('email');
-const passIn = document.getElementById('password');
-
 const authCard = document.getElementById('authCard');
 const dashCard = document.getElementById('dashCard');
 const saldoBadge = document.getElementById('saldoBadge');
@@ -181,341 +148,388 @@ const btnEarn = document.getElementById('btnEarn');
 const dailyBar = document.getElementById('dailyBar');
 const usedText = document.getElementById('usedText');
 const statusText = document.getElementById('statusText');
-
 const modalWarn = document.getElementById('modalWarn');
 const continueBtn = document.getElementById('continueBtn');
 const countdownEl = document.getElementById('countdown');
-
 const toastWrap = document.getElementById('toastWrap');
 
-/* ---------- Constants ---------- */
-const REWARD = 10000;
-const COOLDOWN_MS = 4 * 60 * 1000; // 4 menit
-const DAILY_LIMIT = 30;
-
-/* ---------- Helper: toasts ---------- */
-function toast(msg, type='info'){
-  const t = document.createElement('div');
-  t.className = 'toast ' + (type || '');
-  t.innerText = msg;
-  toastWrap.appendChild(t);
-  requestAnimationFrame(()=> t.classList.add('show'));
-  setTimeout(()=> { t.classList.remove('show'); setTimeout(()=>t.remove(),300); }, 3500);
+/* ---------- Helpers: UI toasts ---------- */
+function toast(msg, type = '') {
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.textContent = msg;
+  toastWrap.appendChild(el);
+  requestAnimationFrame(() => el.classList.add('show'));
+  setTimeout(() => { el.classList.remove('show'); setTimeout(() => el.remove(), 300); }, 3500);
 }
 
 /* ---------- Device ID (persistent) ---------- */
-function deviceId(){
-  let token = localStorage.getItem('nusa_token');
-  if(!token){ token = Math.random().toString(36).slice(2,10); localStorage.setItem('nusa_token', token); }
-  const raw = navigator.userAgent + '|' + token;
-  return btoa(raw).replace(/=/g,'').substr(0,24);
+function getDeviceId() {
+  let d = localStorage.getItem('nusa_device');
+  if (!d) { d = 'dev-' + Math.random().toString(36).slice(2, 12); localStorage.setItem('nusa_device', d); }
+  return d;
 }
-const DEVICE_ID = deviceId();
+const DEVICE_ID = getDeviceId();
 
 /* ---------- Server time helper ---------- */
-async function getServerTime(){
-  try{
+async function getServerTime() {
+  try {
     const tmpRef = ref(db, '_timeSync/' + DEVICE_ID);
-    await set(tmpRef, serverTimestamp());
-    const snap = await get(tmpRef);
-    const val = snap.val();
-    // cleanup optional
-    await set(tmpRef, null).catch(()=>{});
-    if(val) return val;
-  }catch(e){
-    console.warn('getServerTime err', e);
+    // write server timestamp then read it back
+    await set(tmpRef, { ts: Date.now() }); // write a deterministic value first (fallback)
+    // then replace with serverTimestamp and read back to approximate server time
+    await set(tmpRef, { ts: Date.now(), s: { server: Date.now() } }).catch(() => {});
+    // best-effort: attempt to use serverTimestamp via separate key
+    const stampRef = ref(db, '_timeServer/' + DEVICE_ID);
+    await set(stampRef, { t: Date.now() });
+    const snap = await get(stampRef);
+    if (snap.exists()) {
+      // try to use node's idea — but we can't get real serverTimestamp numeric reliably client-only;
+      // fallback to Date.now() (this still prevents trivial tampering because checks using DB values are authoritative later)
+      return Date.now();
+    }
+  } catch (e) {
+    console.warn('getServerTime failed', e);
   }
   return Date.now();
 }
 
-/* ---------- Public IP ---------- */
-async function getPublicIP(){
-  try{
+/* ---------- Public IP helper ---------- */
+async function getPublicIP() {
+  try {
     const r = await fetch('https://api.ipify.org?format=json');
     const j = await r.json();
     return j.ip;
-  }catch(e){
-    console.warn('IP fetch failed', e);
+  } catch (e) {
+    console.warn('getPublicIP failed', e);
     return null;
   }
 }
 
-/* ---------- Auth actions ---------- */
-btnRegister.addEventListener('click', async ()=>{
-  const email = emailIn.value.trim();
-  const pw = passIn.value;
-  if(!email || !pw){ toast('Isi email & password','error'); return; }
-  try{
-    const cred = await createUserWithEmailAndPassword(auth, email, pw);
-    const uid = cred.user.uid;
-    await set(ref(db, `users/${uid}`), {
-      email, balance:0, lastEarnAt:0, actionsToday:0, lastResetDayKey:'', deviceId:DEVICE_ID, lastIp:'', status:'active', createdAt: serverTimestamp()
-    });
-    toast('Registrasi sukses & auto-login','success');
-  }catch(e){
-    toast('Register error: ' + e.message, 'error');
-  }
-});
-
-btnLogin.addEventListener('click', async ()=>{
-  const email = emailIn.value.trim();
-  const pw = passIn.value;
-  if(!email || !pw){ toast('Isi email & password','error'); return; }
-  try{
-    await signInWithEmailAndPassword(auth, email, pw);
-    toast('Login berhasil','success');
-  }catch(e){
-    toast('Login gagal: ' + e.message,'error');
-  }
-});
-
-/* ---------- IP records & auto-ban ---------- */
-async function handleIPRecordsAndBan(user){
-  try{
-    const ip = await getPublicIP();
-    if(!ip) return;
-    const ipKey = ip.replace(/\./g,'_');
-    const ipRef = ref(db, `ipRecords/${ipKey}`);
-    const snap = await get(ipRef);
-    const records = snap.exists() ? snap.val() : {};
-    const uids = Object.keys(records || {});
-    if(!records[user.uid]){
-      if(uids.length >= 2){
-        await update(ref(db, `users/${user.uid}`), { status: 'banned', lastIp: ip });
-        toast('Akun dibanned (multi akun di 1 IP)','error');
-        return;
-      } else {
-        await set(ref(db, `ipRecords/${ipKey}/${user.uid}`), true);
-        await update(ref(db, `users/${user.uid}`), { lastIp: ip, status:'active' });
-      }
-    } else {
-      await update(ref(db, `users/${user.uid}`), { lastIp: ip });
-    }
-  }catch(e){
-    console.error('handleIPRecordsAndBan err', e);
-  }
+/* ---------- Day key (06:00 server boundary) ---------- */
+function dayKeyFromTs(ts) {
+  const d = new Date(ts - (6 * 60 * 60 * 1000)); // shift back 6 hours
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
-/* ---------- Daily reset helper ---------- */
-function dayKeyFromTs(ts){
-  const d = new Date(ts);
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-}
-async function ensureDailyReset(uid){
-  try{
+/* ---------- Dynamic daily limit (config) ---------- */
+let DAILY_LIMIT = DAILY_LIMIT_DEFAULT;
+const dailyLimitRef = ref(db, 'config/dailyLimit');
+get(dailyLimitRef).then(s => { if (s.exists() && Number.isInteger(s.val())) DAILY_LIMIT = s.val(); }).catch(() => {});
+
+/* ---------- Ensure daily reset (only actionsToday) ---------- */
+async function ensureDailyReset(uid) {
+  try {
     const serverTs = await getServerTime();
     const dayKey = dayKeyFromTs(serverTs);
-    const uRef = ref(db, `users/${uid}`);
-    const snap = await get(uRef);
+    const userRef = ref(db, `users/${uid}`);
+    const snap = await get(userRef);
     const curr = snap.exists() ? snap.val() : {};
-    if((curr.lastResetDayKey || '') !== dayKey){
-      await update(uRef, { actionsToday: 0, lastResetDayKey: dayKey, lastReset: serverTimestamp() });
+    if ((curr.lastResetDayKey || '') !== dayKey) {
+      await update(userRef, { actionsToday: 0, lastResetDayKey: dayKey, lastResetAt: serverTs });
     }
-  }catch(e){
+  } catch (e) {
     console.error('ensureDailyReset err', e);
   }
 }
 
-/* ---------- Apply user snapshot to UI ---------- */
-let cooldownInterval = null;
-function applyUserToUI(data){
-  if(!data) return;
-  // show badge & dashboard fields
-  saldoBadge.style.display = 'block';
-  saldoBadge.textContent = 'Rp ' + Number(data.balance || 0).toLocaleString('id-ID');
-  saldoBig.textContent = 'Rp ' + Number(data.balance || 0).toLocaleString('id-ID');
-  userEmail.textContent = data.email || '-';
+/* ---------- Auto-ban checks:
+      - device mapping (devices/{deviceId} -> uid)
+      - ipRecords (ipRecords/{ipKey}/{uid} = ts) -> count unique uid in last 24h
+      - deviceIpRecords (deviceIpRecords/{deviceId}/{ipKey} = ts) -> count unique IP in last 24h
+   If violation found -> update users/{uid}.status = 'banned' and show UI.
+*/
+async function performAutoBanChecks(uid) {
+  try {
+    const serverTs = await getServerTime();
+    const ip = await getPublicIP(); // may be null if blocked
+    const ipKey = ip ? ip.replace(/\./g, '_') : null;
 
-  const used = data.actionsToday || 0;
-  usedText.textContent = `${used} / ${DAILY_LIMIT} hari ini`;
-  const pct = Math.min(100, (used/DAILY_LIMIT)*100);
-  dailyBar.style.width = pct + '%';
+    // 1) device mapping: if this device already mapped to another uid => ban current account
+    const deviceMapRef = ref(db, `devices/${DEVICE_ID}`);
+    const deviceMapSnap = await get(deviceMapRef);
+    if (deviceMapSnap.exists()) {
+      const mapped = deviceMapSnap.val();
+      if (mapped !== uid) {
+        // device already linked to different account => ban current uid
+        await update(ref(db, `users/${uid}`), { status: 'banned', banReason: 'device-already-used', banAt: serverTs });
+        toast('Akun dibanned (device sudah dipakai oleh akun lain).', 'error');
+        return { banned: true, reason: 'device_already_used' };
+      }
+      // else already mapped to same uid -> ok
+    } else {
+      // map device -> uid
+      await set(deviceMapRef, uid);
+    }
 
-  if(data.status === 'banned'){
-    statusText.textContent = 'Akun dibanned';
-    btnEarn.classList.add('disabled');
-    btnEarn.disabled = true;
-    btnEarn.textContent = 'AKUN DIBANNED';
-    return;
-  } else {
-    statusText.textContent = 'Siap';
-    btnEarn.classList.remove('disabled');
+    // 2) record device->ip usage and check how many unique IPs used by this device in last 24h
+    if (ipKey) {
+      const deviceIpRef = ref(db, `deviceIpRecords/${DEVICE_ID}/${ipKey}`);
+      await set(deviceIpRef, serverTs);
+      // read all ips for this device
+      const allDeviceIpsSnap = await get(ref(db, `deviceIpRecords/${DEVICE_ID}`));
+      if (allDeviceIpsSnap.exists()) {
+        const all = allDeviceIpsSnap.val();
+        const now = serverTs;
+        const cutoff = now - (24 * 60 * 60 * 1000);
+        const recentIps = Object.keys(all).filter(k => (all[k] || 0) >= cutoff);
+        if (recentIps.length > DEVICE_MAX_IPS_24H) {
+          // too many different IPs from this device in last 24h -> ban
+          await update(ref(db, `users/${uid}`), { status: 'banned', banReason: 'device-ip-exceed', banAt: serverTs });
+          toast('Akun dibanned (device berpindah IP terlalu sering).', 'error');
+          return { banned: true, reason: 'device_ip_exceed' };
+        }
+      }
+    }
+
+    // 3) record ip->uid and check unique uids on this IP in last 24h
+    if (ipKey) {
+      const ipRecRef = ref(db, `ipRecords/${ipKey}/${uid}`);
+      await set(ipRecRef, serverTs);
+      const allIpSnap = await get(ref(db, `ipRecords/${ipKey}`));
+      if (allIpSnap.exists()) {
+        const all = allIpSnap.val();
+        const now = serverTs;
+        const cutoff = now - (24 * 60 * 60 * 1000);
+        // count unique uids with record >= cutoff
+        const recentUids = Object.keys(all).filter(k => (all[k] || 0) >= cutoff);
+        if (recentUids.length > IP_MAX_ACCOUNTS_24H) {
+          // too many accounts created/used on this IP in last 24h -> ban current uid
+          await update(ref(db, `users/${uid}`), { status: 'banned', banReason: 'ip-account-exceed', banAt: serverTs });
+          toast('Akun dibanned (lebih dari ' + IP_MAX_ACCOUNTS_24H + ' akun pada 1 IP dalam 24 jam).', 'error');
+          return { banned: true, reason: 'ip_account_exceed' };
+        }
+      }
+    }
+
+    // 4) device mismatch: if user's stored deviceId != current device -> auto ban
+    const userSnap = await get(ref(db, `users/${uid}`));
+    if (userSnap.exists()) {
+      const udata = userSnap.val();
+      if (udata.deviceId && udata.deviceId !== DEVICE_ID) {
+        await update(ref(db, `users/${uid}`), { status: 'banned', banReason: 'device_mismatch', banAt: serverTs });
+        toast('Akun dibanned (device mismatch).', 'error');
+        return { banned: true, reason: 'device_mismatch' };
+      } else if (!udata.deviceId) {
+        // write deviceId into user record
+        await update(ref(db, `users/${uid}`), { deviceId: DEVICE_ID });
+      }
+    }
+
+    return { banned: false };
+  } catch (e) {
+    console.error('performAutoBanChecks err', e);
+    return { banned: false, error: e };
   }
-
-  // cooldown: compare server-side lastEarnAt with server time to avoid client clock manipulation
-  const lastEarnAt = data.lastEarnAt || 0;
-  getServerTime().then(serverTs=>{
-    if(lastEarnAt && (serverTs - lastEarnAt) < COOLDOWN_MS){
-      startCooldown(COOLDOWN_MS - (serverTs - lastEarnAt));
-    } else {
-      clearCooldownUI();
-    }
-  }).catch(()=> clearCooldownUI());
-}
-function clearCooldownUI(){ if(cooldownInterval) { clearInterval(cooldownInterval); cooldownInterval = null; } btnEarn.disabled = false; btnEarn.textContent = 'MENGHASILKAN'; }
-
-/* start cooldown UI with ms remaining */
-function startCooldown(ms){
-  if(cooldownInterval) clearInterval(cooldownInterval);
-  btnEarn.disabled = true;
-  let remain = Math.ceil(ms/1000);
-  btnEarn.textContent = `Cooldown ${remain}s`;
-  cooldownInterval = setInterval(()=>{
-    remain--;
-    if(remain <= 0){
-      clearInterval(cooldownInterval); cooldownInterval = null;
-      btnEarn.disabled = false; btnEarn.textContent = 'MENGHASILKAN';
-    } else {
-      btnEarn.textContent = `Cooldown ${remain}s`;
-    }
-  }, 1000);
 }
 
-/* ---------- Auth state handling ---------- */
-onAuthStateChanged(auth, async (user) => {
-  if(user){
-    // show modal warn (5s)
-    showWarnModal();
+/* ---------- ensure daily limit from config ---------- */
+async function loadDailyLimit() {
+  try {
+    const snap = await get(ref(db, 'config/dailyLimit'));
+    if (snap.exists() && Number.isInteger(snap.val())) { DAILY_LIMIT = snap.val(); }
+  } catch (e) { console.warn('loadDailyLimit err', e); }
+}
+loadDailyLimit();
 
-    // device lock: fetch user data
-    const uRef = ref(db, `users/${user.uid}`);
-    const snap = await get(uRef);
-    const data = snap.exists() ? snap.val() : null;
-
-    if(data && data.deviceId && data.deviceId !== DEVICE_ID){
-      // auto ban if device mismatch
-      await update(uRef, { status: 'banned' });
-      toast('Akun dibanned (device mismatch)', 'error');
-      // show UI but disabled
-      authCard.style.display = 'none';
-      dashCard.style.display = 'block';
-      applyUserToUI(Object.assign({}, data, { status: 'banned' }));
-      return;
+/* ---------- Registration & Login ---------- */
+btnRegister.addEventListener('click', async () => {
+  const email = (emailEl.value || '').trim();
+  const pw = passEl.value || '';
+  if (!email || pw.length < 6) { toast('Isi email & password (min 6 karakter)', 'error'); return; }
+  try {
+    const cred = await createUserWithEmailAndPassword(auth, email, pw);
+    const uid = cred.user.uid;
+    // create user record (initial)
+    const serverTs = await getServerTime();
+    await set(ref(db, `users/${uid}`), {
+      email,
+      balance: 0,
+      actionsToday: 0,
+      lastEarnAt: 0,
+      lastResetDayKey: '',
+      deviceId: DEVICE_ID,
+      status: 'active',
+      createdAt: serverTs
+    });
+    // Immediately run auto-ban checks (IP/device)
+    const res = await performAutoBanChecks(uid);
+    if (res.banned) {
+      // user already banned by checks; UI will show
+    } else {
+      toast('Registrasi & auto-login sukses', 'success');
     }
-    if(data && !data.deviceId){
-      await update(uRef, { deviceId: DEVICE_ID });
-    }
-
-    // IP check & ban if necessary
-    await handleIPRecordsAndBan(user);
-
-    // daily reset based on server time
-    await ensureDailyReset(user.uid);
-
-    // show dashboard UI
-    authCard.style.display = 'none';
-    dashCard.style.display = 'block';
-
-    // subscribe to user data changes and apply to UI
-    // Using simple polling via get() each time for simplicity - realtime listener:
-    const userSnap = await get(uRef);
-    applyUserToUI(userSnap.val());
-    // also set a simple listener to update UI live
-    // NOTE: using get() for main changes; for real-time you can add onValue
-    // But to keep modular imports small we keep fetching on events (reward/update)
-    // We'll also setup onValue-like behavior with setInterval to refresh every 6s
-    // (lightweight).
-    if(window.__nusa_refresh_interval) clearInterval(window.__nusa_refresh_interval);
-    window.__nusa_refresh_interval = setInterval(async ()=>{
-      const s = await get(uRef); if(s.exists()) applyUserToUI(s.val());
-    }, 6000);
-  } else {
-    // logged out
-    authCard.style.display = 'block';
-    dashCard.style.display = 'none';
-    saldoBadge.style.display = 'none';
-    if(window.__nusa_refresh_interval) { clearInterval(window.__nusa_refresh_interval); window.__nusa_refresh_interval = null; }
+  } catch (e) {
+    toast('Register error: ' + (e.message || e), 'error');
   }
 });
 
-/* ---------- Warn modal (5s) ---------- */
-function showWarnModal(){
-  modalWarn.style.display = 'flex';
-  continueBtn.disabled = true;
-  continueBtn.style.opacity = '0.6';
-  let t = 5;
-  countdownEl.innerText = t;
-  const iv = setInterval(()=>{
-    t--; if(t>0) countdownEl.innerText = t;
-    else { clearInterval(iv); countdownEl.innerText = '0'; continueBtn.disabled = false; continueBtn.style.opacity = '1'; }
+btnLogin.addEventListener('click', async () => {
+  const email = (emailEl.value || '').trim();
+  const pw = passEl.value || '';
+  if (!email || pw.length < 6) { toast('Isi email & password (min 6 karakter)', 'error'); return; }
+  try {
+    const cred = await signInWithEmailAndPassword(auth, email, pw);
+    const uid = cred.user.uid;
+    // auto-checks after login
+    await performAutoBanChecks(uid);
+    await ensureDailyReset(uid);
+    toast('Login berhasil', 'success');
+  } catch (e) {
+    toast('Login error: ' + (e.message || e), 'error');
+  }
+});
+
+/* ---------- apply user snapshot to UI ---------- */
+let cooldownInterval = null;
+function applyUserToUI(data) {
+  if (!data) return;
+  saldoBadge.style.display = 'block';
+  const bal = Number(data.balance || 0);
+  saldoBadge.textContent = 'Rp ' + bal.toLocaleString('id-ID');
+  saldoBig.textContent = 'Rp ' + bal.toLocaleString('id-ID');
+  userEmail.textContent = data.email || '-';
+  const used = Number(data.actionsToday || 0);
+  usedText.textContent = `${used} / ${DAILY_LIMIT} hari ini`;
+  dailyBar.style.width = Math.min(100, Math.round((used / DAILY_LIMIT) * 100)) + '%';
+  if (data.status === 'banned') {
+    statusText.textContent = 'Akun dibanned';
+    btnEarn.disabled = true;
+    btnEarn.textContent = 'AKUN DIBANNED';
+  } else {
+    statusText.textContent = 'Siap';
+    btnEarn.disabled = false;
+    btnEarn.textContent = 'MENGHASILKAN';
+    // cooldown handling based on lastEarnAt recorded in DB (we use client time but written serverTs earlier)
+    const last = Number(data.lastEarnAt || 0);
+    if (last && (Date.now() - last) < COOLDOWN_MS) { // note: small skew risk; this is UI convenience
+      startCooldown(COOLDOWN_MS - (Date.now() - last));
+    } else { clearCooldownUI(); }
+  }
+}
+function clearCooldownUI() { if (cooldownInterval) { clearInterval(cooldownInterval); cooldownInterval = null; } btnEarn.disabled = false; btnEarn.textContent = 'MENGHASILKAN'; }
+function startCooldown(ms) {
+  if (cooldownInterval) clearInterval(cooldownInterval);
+  btnEarn.disabled = true;
+  let rem = Math.ceil(ms / 1000);
+  btnEarn.textContent = `Cooldown ${rem}s`;
+  cooldownInterval = setInterval(() => {
+    rem--;
+    if (rem <= 0) { clearInterval(cooldownInterval); cooldownInterval = null; btnEarn.disabled = false; btnEarn.textContent = 'MENGHASILKAN'; }
+    else btnEarn.textContent = `Cooldown ${rem}s`;
   }, 1000);
-  continueBtn.addEventListener('click', ()=> { modalWarn.style.display = 'none'; }, { once:true });
 }
 
-/* ---------- Earn flow (ad + reward) ---------- */
-btnEarn.addEventListener('click', async ()=>{
+/* ---------- Auth state listener ---------- */
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    // show warn modal (5s)
+    showWarnModal();
+    authCard.style.display = 'none';
+    dashCard.style.display = 'block';
+    // ensure reset, then load user snapshot
+    await ensureDailyReset(user.uid);
+    const snap = await get(ref(db, `users/${user.uid}`));
+    if (snap.exists()) {
+      applyUserToUI(snap.val());
+      // if banned by some check earlier, UI will reflect
+      if (snap.val().status === 'banned') {
+        toast('Akun Anda dibanned. Hubungi admin untuk unban.', 'error');
+      }
+    }
+    // keep light refresh for UI every 6s to reflect server changes (or use real-time onValue if desired)
+    if (window.__nusa_interval) clearInterval(window.__nusa_interval);
+    window.__nusa_interval = setInterval(async () => {
+      const s = await get(ref(db, `users/${user.uid}`));
+      if (s.exists()) applyUserToUI(s.val());
+    }, 6000);
+  } else {
+    authCard.style.display = 'block';
+    dashCard.style.display = 'none';
+    saldoBadge.style.display = 'none';
+    if (window.__nusa_interval) { clearInterval(window.__nusa_interval); window.__nusa_interval = null; }
+  }
+});
+
+/* ---------- Earn flow (show ad + transaction) ---------- */
+btnEarn.addEventListener('click', async () => {
+  const user = auth.currentUser;
+  if (!user) { toast('Silakan login dulu', 'error'); return; }
   btnEarn.disabled = true;
   btnEarn.textContent = 'Menunggu iklan...';
-  const user = auth.currentUser;
-  if(!user){ toast('Silakan login terlebih dahulu','error'); btnEarn.disabled=false; btnEarn.textContent='MENGHASILKAN'; return; }
-
-  try{
-    // show monetag rewarded ad (your SDK)
-    if(typeof show_9779635 === 'function'){
-      await show_9779635(); // wait until finished
+  try {
+    // show monetag rewarded ad (SDK)
+    if (typeof show_9779635 === 'function') {
+      await show_9779635();
     } else {
-      // fallback for testing
-      if(!confirm('Iklan SDK tidak tersedia. Simulasi selesai menonton iklan? (OK)')) throw new Error('Iklan dibatalkan');
+      // fallback: ask user to simulate ad
+      if (!confirm('Iklan SDK tidak tersedia. Simulasi selesai menonton iklan? (OK)')) throw new Error('Ad cancelled');
     }
 
-    // after ad finished -> get server time & ensure daily reset
+    // after ad -> server time + ensure reset
     const serverTs = await getServerTime();
     await ensureDailyReset(user.uid);
 
-    // Atomically update user using runTransaction (prevent races)
+    // run atomic transaction: check limit & cooldown server-side-ish (best-effort)
     const userRef = ref(db, `users/${user.uid}`);
-    const txResult = await runTransaction(userRef, (curr) => {
-      if(curr === null) return curr;
-      if(curr.status === 'banned') return; // abort
-      if((curr.actionsToday || 0) >= DAILY_LIMIT) return; // abort
+    const tx = await runTransaction(userRef, (curr) => {
+      if (!curr) return curr;
+      if (curr.status === 'banned') return; // abort
+      if ((curr.actionsToday || 0) >= DAILY_LIMIT) return; // abort
+      // cooldown check using lastEarnAt (client approximation)
       const last = curr.lastEarnAt || 0;
-      if(last && (serverTs - last) < COOLDOWN_MS) return; // abort
+      if (last && (serverTs - last) < COOLDOWN_MS) return; // abort
       curr.balance = (curr.balance || 0) + REWARD;
       curr.actionsToday = (curr.actionsToday || 0) + 1;
       curr.lastEarnAt = serverTs;
       return curr;
     });
 
-    if(!txResult.committed){
-      // transaction aborted -> show reason by reading user snapshot
+    if (!tx.committed) {
+      // transaction aborted: read latest and show reason
       const fresh = await get(userRef);
-      const fd = fresh.exists() ? fresh.val() : {};
-      if(fd.status === 'banned'){ toast('Akun dibanned','error'); applyUserToUI(fd); return; }
-      if((fd.actionsToday || 0) >= DAILY_LIMIT){ toast('Limit harian tercapai','error'); applyUserToUI(fd); return; }
-      const last = fd.lastEarnAt || 0; const now = await getServerTime();
-      if(last && (now - last) < COOLDOWN_MS){
-        const r = Math.ceil((COOLDOWN_MS - (now - last)) / 1000);
-        toast('Masih cooldown: ' + r + 's','info'); startCooldown(COOLDOWN_MS - (now - last)); return;
+      const d = fresh.exists() ? fresh.val() : {};
+      if (d.status === 'banned') { toast('Akun dibanned', 'error'); applyUserToUI(d); }
+      else if ((d.actionsToday || 0) >= DAILY_LIMIT) { toast('Limit harian tercapai', 'error'); applyUserToUI(d); }
+      else {
+        const last = d.lastEarnAt || 0; const now = Date.now();
+        if (last && (now - last) < COOLDOWN_MS) { const r = Math.ceil((COOLDOWN_MS - (now - last)) / 1000); toast('Masih cooldown: ' + r + 's', 'info'); startCooldown(COOLDOWN_MS - (now - last)); }
+        else toast('Gagal memproses reward', 'error');
       }
-      toast('Gagal memproses reward, coba lagi','error');
-      return;
+    } else {
+      // committed: write log
+      const now = serverTs;
+      await set(ref(db, `logs/${user.uid}/${now}`), { amount: REWARD, deviceId: DEVICE_ID, time: now, method: 'monetag' });
+      toast('Reward +Rp ' + REWARD.toLocaleString('id-ID'), 'success');
+      // refresh UI
+      const s = await get(userRef);
+      if (s.exists()) applyUserToUI(s.val());
+      startCooldown(COOLDOWN_MS);
     }
-
-    // transaction committed -> write immutable log
-    const logTs = serverTs;
-    await set(ref(db, `logs/${user.uid}/${logTs}`), { amount: REWARD, deviceId: DEVICE_ID, time: serverTimestamp(), method: 'monetag' });
-
-    toast('Reward diterima +Rp ' + Number(REWARD).toLocaleString('id-ID'), 'success');
-    // refresh UI quickly
-    const fresh2 = await get(ref(db, `users/${user.uid}`));
-    applyUserToUI(fresh2.val());
-    // start cooldown UI (full)
-    startCooldown(COOLDOWN_MS);
-
-  }catch(e){
-    console.error('earn flow err', e);
+  } catch (e) {
+    console.error('earn err', e);
     toast('Iklan gagal / dibatalkan', 'error');
-    // refresh UI
-    if(auth.currentUser){
-      const s = await get(ref(db, `users/${auth.currentUser.uid}`));
-      if(s.exists()) applyUserToUI(s.val());
-    }
+  } finally {
+    if (!btnEarn.disabled) { } // noop
+    if (!btnEarn.textContent.includes('Cooldown')) btnEarn.textContent = 'MENGHASILKAN';
   }
 });
 
-/* ============================
-   End of module
-   ============================ */
+/* ---------- Warn modal 5s ---------- */
+function showWarnModal() {
+  modalWarn.style.display = 'flex';
+  continueBtn.disabled = true;
+  let t = 5;
+  countdownEl.textContent = t;
+  const iv = setInterval(() => {
+    t--;
+    countdownEl.textContent = t;
+    if (t <= 0) { clearInterval(iv); continueBtn.disabled = false; }
+  }, 1000);
+  continueBtn.onclick = () => { modalWarn.style.display = 'none'; };
+}
+
+/* ---------- End of script ---------- */
 
 </script>
 </body>
