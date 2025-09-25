@@ -3,14 +3,12 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>NUSATASK — Pro</title>
+<title>NUSATASK — Final Pro</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --bg:#0b0f13;--card:#0f1720;--muted:#9aa2af;
+  :root{--bg:#0b0f13;--card:#0f1720;--muted:#9aa2af;
     --accent:#7c5cff;--accent-2:#44d7b6;
-    --danger:#ff4d6d;--success:#22c55e;
-  }
+    --danger:#ff4d6d;--success:#22c55e;}
   body{margin:0;background:linear-gradient(180deg,#060a0f,#0a1018);font-family:Inter;color:#e6eef8}
   .wrap{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}
   .app{max-width:420px;width:100%;background:var(--card);border-radius:18px;padding:20px;box-shadow:0 10px 30px rgba(0,0,0,.4)}
@@ -28,7 +26,7 @@
   .toast.success{border-left:4px solid var(--success)}
   .toast.error{border-left:4px solid var(--danger)}
   .toast.info{border-left:4px solid var(--accent)}
-  /* Progress bar */
+  /* Progress */
   .progress{height:8px;border-radius:6px;background:#2a2d33;margin-top:8px;overflow:hidden}
   .progress>div{height:100%;background:linear-gradient(90deg,var(--accent-2),#4ade80);width:0%}
 </style>
@@ -56,7 +54,8 @@
       <p>Email: <span id="userEmail"></span></p>
       <button id="earnBtn" class="btn">MENGHASILKAN</button>
       <p id="cooldownText" style="font-size:13px;color:var(--muted);margin-top:6px">Siap digunakan</p>
-      <div class="progress"><div id="progressBar"></div></div>
+      <div class="progress"><div id="cooldownBar"></div></div>
+      <div class="progress" style="margin-top:12px"><div id="progressBar"></div></div>
       <p id="countText" style="font-size:13px;color:var(--muted);margin-top:4px"></p>
     </div>
   </div>
@@ -88,18 +87,17 @@
   const auth = getAuth(app);
   const db = getDatabase(app);
 
-  // UI elements
-  const authBox = document.getElementById("authBox");
-  const dash = document.getElementById("dash");
-  const saldoBox = document.getElementById("saldoBox");
-  const saldoEl = document.getElementById("saldoBox");
-  const userEmailEl = document.getElementById("userEmail");
-  const earnBtn = document.getElementById("earnBtn");
-  const cooldownText = document.getElementById("cooldownText");
-  const progressBar = document.getElementById("progressBar");
-  const countText = document.getElementById("countText");
+  const authBox=document.getElementById("authBox");
+  const dash=document.getElementById("dash");
+  const saldoBox=document.getElementById("saldoBox");
+  const saldoEl=document.getElementById("saldoBox");
+  const userEmailEl=document.getElementById("userEmail");
+  const earnBtn=document.getElementById("earnBtn");
+  const cooldownText=document.getElementById("cooldownText");
+  const cooldownBar=document.getElementById("cooldownBar");
+  const progressBar=document.getElementById("progressBar");
+  const countText=document.getElementById("countText");
 
-  // Toast
   function toast(msg,type="info"){
     const wrap=document.getElementById("toastWrap");
     const t=document.createElement("div");
@@ -108,6 +106,10 @@
     wrap.appendChild(t);
     setTimeout(()=>t.classList.add("show"),100);
     setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300)},3000);
+  }
+
+  function getDeviceId(){
+    return btoa(navigator.userAgent).substr(0,20); // hash simple dari UA
   }
 
   // Register
@@ -122,6 +124,7 @@
         lastEarnAt:0,
         actionsToday:0,
         lastReset:0,
+        deviceId:getDeviceId(),
         createdAt:serverTimestamp()
       });
       toast("Registrasi sukses!","success");
@@ -130,10 +133,10 @@
 
   // Login
   document.getElementById("loginBtn").onclick=async()=>{
-    const email=document.getElementById("email").value;
-    const pw=document.getElementById("password").value;
     try{
-      await signInWithEmailAndPassword(auth,email,pw);
+      await signInWithEmailAndPassword(auth,
+        document.getElementById("email").value,
+        document.getElementById("password").value);
       toast("Login berhasil","success");
     }catch(e){ toast("Login gagal: "+e.message,"error"); }
   };
@@ -141,11 +144,19 @@
   // Session
   onAuthStateChanged(auth,async user=>{
     if(user){
-      authBox.style.display="none";
-      dash.style.display="block";
-      saldoBox.style.display="block";
-      userEmailEl.textContent=user.email;
-      await refreshUser();
+      const snap=await get(ref(db,"users/"+user.uid));
+      if(snap.exists()){
+        const data=snap.val();
+        if(data.deviceId && data.deviceId!==getDeviceId()){
+          toast("Akun dikunci: device berbeda!","error");
+          return;
+        }
+        authBox.style.display="none";
+        dash.style.display="block";
+        saldoBox.style.display="block";
+        userEmailEl.textContent=user.email;
+        refreshUser();
+      }
     }else{
       authBox.style.display="block";
       dash.style.display="none";
@@ -166,62 +177,81 @@
   function updateProgress(data){
     const todayCount=data.actionsToday||0;
     countText.textContent=`${todayCount}/30 kali hari ini`;
-    const percent=Math.min((todayCount/30)*100,100);
-    progressBar.style.width=percent+"%";
+    progressBar.style.width=Math.min((todayCount/30)*100,100)+"%";
   }
 
   function checkCooldown(data){
     const now=Date.now();
     const last=(data.lastEarnAt||0);
-    const diff=Math.floor((now-last)/1000);
-    const cd=240; // 4 menit
-    if(diff<cd){
-      const remain=cd-diff;
-      earnBtn.disabled=true;
-      cooldownText.textContent=`Cooldown ${remain}s`;
-      const timer=setInterval(()=>{
-        const r=Math.max(0,cd-Math.floor((Date.now()-last)/1000));
-        cooldownText.textContent=r>0?`Cooldown ${r}s`:"Siap digunakan";
-        if(r<=0){clearInterval(timer);earnBtn.disabled=false;}
-      },1000);
+    const cd=240000;
+    if(now-last<cd){
+      startCooldown(cd-(now-last));
     }else{
       earnBtn.disabled=false;
       cooldownText.textContent="Siap digunakan";
+      cooldownBar.style.width="0%";
     }
   }
 
-  // Earn button → Monetag Rewarded Ad
+  function startCooldown(ms){
+    earnBtn.disabled=true;
+    let remain=Math.floor(ms/1000);
+    const total=240;
+    const timer=setInterval(()=>{
+      cooldownText.textContent=`Cooldown ${remain}s`;
+      cooldownBar.style.width=((total-remain)/total*100)+"%";
+      remain--;
+      if(remain<=0){
+        clearInterval(timer);
+        cooldownText.textContent="Siap digunakan";
+        cooldownBar.style.width="0%";
+        earnBtn.disabled=false;
+      }
+    },1000);
+  }
+
+  // Earn button with Monetag
   earnBtn.onclick=async()=>{
     earnBtn.disabled=true;
     cooldownText.textContent="Menunggu iklan...";
     try{
-      show_9779635().then(async()=>{
-        const uid=auth.currentUser.uid;
-        const userRef=ref(db,"users/"+uid);
-        const snap=await get(userRef);
-        let data=snap.val();
-        // reset jam 6 pagi
-        const now=new Date(); const h=now.getHours();
-        if(h>=6 && (data.lastReset||0)<new Date().setHours(6,0,0,0)){
-          await update(userRef,{actionsToday:0,lastReset:Date.now()});
-          data.actionsToday=0;
-        }
-        if((data.actionsToday||0)>=30){
-          toast("Batas harian tercapai","error");
-          earnBtn.disabled=false;
-          return;
-        }
-        const newBalance=(data.balance||0)+100;
-        await update(userRef,{
-          balance:newBalance,
-          lastEarnAt:Date.now(),
-          actionsToday:(data.actionsToday||0)+1
-        });
-        toast("Reward diterima +Rp100!","success");
-        await refreshUser();
+      await show_9779635(); // tunggu iklan selesai
+      const uid=auth.currentUser.uid;
+      const userRef=ref(db,"users/"+uid);
+      const snap=await get(userRef);
+      let data=snap.val();
+
+      // reset harian jam 6 pagi
+      const now=new Date();
+      if(now.getHours()>=6 && (data.lastReset||0)<new Date().setHours(6,0,0,0)){
+        await update(userRef,{actionsToday:0,lastReset:Date.now()});
+        data.actionsToday=0;
+      }
+      if((data.actionsToday||0)>=30){
+        toast("Batas harian tercapai","error");
+        earnBtn.disabled=false;
+        return;
+      }
+
+      const newBalance=(data.balance||0)+100;
+      await update(userRef,{
+        balance:newBalance,
+        lastEarnAt:Date.now(),
+        actionsToday:(data.actionsToday||0)+1
       });
+      // log reward
+      const ts=Date.now();
+      await set(ref(db,`logs/${uid}/${ts}`),{
+        amount:100,
+        deviceId:getDeviceId(),
+        time:serverTimestamp()
+      });
+
+      toast("Reward diterima +Rp100!","success");
+      refreshUser();
+      startCooldown(240000);
     }catch(e){
-      toast("Iklan gagal: "+e.message,"error");
+      toast("Iklan gagal / ditutup","error");
       earnBtn.disabled=false;
     }
   };
